@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Check, Camera, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { formatDateForInput } from '../../lib/utils';
 import { PAYMENT_METHODS } from '../../constants/paymentMethods';
 import { useTheme } from '../../context/ThemeContext';
+import api from '../../api/axios';
+import toast from 'react-hot-toast';
 
 const TransactionForm = ({ transaction, categories, onSubmit, onClose, initialType = 'expense' }) => {
   const [amount, setAmount] = useState(transaction?.amount || '');
@@ -13,6 +16,9 @@ const TransactionForm = ({ transaction, categories, onSubmit, onClose, initialTy
   const [date, setDate] = useState(formatDateForInput(transaction?.date || new Date()));
   const [notes, setNotes] = useState(transaction?.notes || '');
   const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const fileInputRef = useRef(null);
   const { theme } = useTheme();
   const isLight = theme === 'light';
 
@@ -38,9 +44,48 @@ const TransactionForm = ({ transaction, categories, onSubmit, onClose, initialTy
         date,
         notes,
       });
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsSuccess(false);
+        // Let the animation finish before closing
+        setTimeout(onClose, 200);
+      }, 1200);
+    } catch (e) {
+      // Error handling is done in parent, but we want to ensure we don't show success on error
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Check size limit (e.g., 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image is too large. Max 5MB allowed.');
+      return;
+    }
+
+    setIsScanning(true);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+      try {
+        const response = await api.post('/ai/scan-receipt', { image: reader.result });
+        const data = response.data.data;
+        if (data.amount) setAmount(data.amount);
+        if (data.date) setDate(data.date);
+        if (data.description) setDescription(data.description);
+        toast.success('Receipt scanned successfully!');
+      } catch (error) {
+        console.error('Failed to scan receipt', error);
+        toast.error('Failed to scan receipt. Please try manually.');
+      } finally {
+        setIsScanning(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    };
   };
 
   const modalStyle = {
@@ -95,8 +140,20 @@ const TransactionForm = ({ transaction, categories, onSubmit, onClose, initialTy
         {/* Header */}
         <div className="flex items-start justify-between p-[20px] pb-0">
           <div>
-            <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-text)', lineHeight: '1.2' }}>
+            <h2 className="flex items-center gap-3" style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-text)', lineHeight: '1.2' }}>
               {transaction ? 'Edit Transaction' : 'Add Transaction'}
+              
+              {!transaction && (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isScanning}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm font-medium disabled:opacity-50"
+                  style={{ color: 'var(--color-primary)' }}
+                >
+                  {isScanning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
+                  {isScanning ? 'Scanning...' : 'Scan Receipt'}
+                </button>
+              )}
             </h2>
             <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: '4px' }}>
               Record your income or expense
@@ -122,6 +179,13 @@ const TransactionForm = ({ transaction, categories, onSubmit, onClose, initialTy
 
         {/* Body */}
         <div className="overflow-y-auto px-[20px] py-[18px]">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileUpload} 
+            accept="image/*" 
+            className="hidden" 
+          />
           {/* Type Selector */}
           <div className="flex w-full mb-[18px]" style={{ height: '44px', borderRadius: '12px', background: 'var(--color-background)', border: '1px solid var(--color-border)', padding: '2px' }}>
             <button
@@ -261,6 +325,45 @@ const TransactionForm = ({ transaction, categories, onSubmit, onClose, initialTy
             </div>
           </form>
         </div>
+
+        {/* Success Overlay */}
+        <AnimatePresence>
+          {isSuccess && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-50 flex items-center justify-center rounded-[20px]"
+              style={{ background: 'var(--color-surface)' }}
+            >
+              <div className="flex flex-col items-center justify-center">
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  className="w-20 h-20 rounded-full flex items-center justify-center animate-success-pulse"
+                  style={{ background: 'rgba(24, 201, 154, 0.1)', border: '2px solid #18C99A' }}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, pathLength: 0 }}
+                    animate={{ opacity: 1, pathLength: 1 }}
+                    transition={{ duration: 0.4, delay: 0.2 }}
+                  >
+                    <Check className="w-10 h-10 text-[#18C99A]" />
+                  </motion.div>
+                </motion.div>
+                <motion.p
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-4 font-bold text-lg text-white"
+                >
+                  {transaction ? 'Updated!' : 'Added Successfully!'}
+                </motion.p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -60,16 +60,52 @@ const initCronJobs = () => {
         );
       }
 
-      // 2. Subscription Renewals (Warning 3 days before)
+      // 2. Process Due Subscriptions
+      const trulyDueSubscriptions = await Subscription.find({
+        status: 'Active',
+        nextBillingDate: { $lte: now }
+      });
+
+      for (const sub of trulyDueSubscriptions) {
+        // Create transaction
+        await Transaction.create({
+          userId: sub.userId,
+          amount: sub.amount,
+          type: 'expense',
+          categoryId: sub.categoryId,
+          description: sub.name,
+          paymentMethod: 'Auto',
+          date: new Date()
+        });
+
+        // Update next billing date
+        const nextDate = new Date(sub.nextBillingDate);
+        switch (sub.billingCycle) {
+          case 'Monthly': nextDate.setMonth(nextDate.getMonth() + 1); break;
+          case 'Yearly': nextDate.setFullYear(nextDate.getFullYear() + 1); break;
+          case 'Weekly': nextDate.setDate(nextDate.getDate() + 7); break;
+        }
+        sub.nextBillingDate = nextDate;
+        await sub.save();
+
+        await notificationService.createNotification(
+          sub.userId,
+          'Subscription Logged',
+          `Your subscription "${sub.name}" for ₹${sub.amount} was automatically logged.`,
+          'success'
+        );
+      }
+
+      // 3. Subscription Renewals (Warning 3 days before)
       const threeDaysFromNow = new Date(now);
       threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
 
-      const dueSubscriptions = await Subscription.find({
+      const warningSubscriptions = await Subscription.find({
         status: 'Active',
         nextBillingDate: { $lte: threeDaysFromNow, $gt: now }
       });
 
-      for (const sub of dueSubscriptions) {
+      for (const sub of warningSubscriptions) {
         // Find if we already notified for this exact date to avoid spam
         // Simplified for this phase
         await notificationService.createNotification(
@@ -80,7 +116,7 @@ const initCronJobs = () => {
         );
       }
 
-      // 3. Generate Insights for all users
+      // 4. Generate Insights for all users
       const users = await User.find({}, '_id');
       for (const user of users) {
         await generateInsights(user._id);

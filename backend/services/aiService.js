@@ -97,8 +97,47 @@ ${JSON.stringify(context, null, 2)}
     return await generateResponse(messages);
 };
 
+/**
+ * Scans a receipt image and extracts transaction details
+ * @param {string} base64Image - The image data url (e.g. data:image/jpeg;base64,...)
+ */
+const scanReceiptImage = async (base64Image) => {
+    const prompt = `
+You are a highly accurate receipt parsing AI. 
+Extract the total amount, the date of the transaction, and a short description (like the merchant name).
+Return ONLY a valid JSON object with the following keys and format, no markdown formatting or backticks:
+{
+  "amount": number (just the number, e.g. 15.99),
+  "date": "YYYY-MM-DD",
+  "description": "Short description or merchant name"
+}
+If you cannot find a value, use null.
+`;
+
+    const messages = [
+        {
+            role: 'user',
+            content: [
+                { type: 'text', text: prompt },
+                { type: 'image_url', image_url: { url: base64Image } }
+            ]
+        }
+    ];
+
+    try {
+        const responseStr = await generateResponse(messages);
+        // The AI might wrap it in ```json ... ```, so clean it
+        const cleanStr = responseStr.replace(/```json/g, '').replace(/```/g, '').trim();
+        return JSON.parse(cleanStr);
+    } catch (error) {
+        console.error('Error parsing receipt:', error);
+        throw new Error('Failed to extract data from receipt.');
+    }
+};
+
 module.exports = {
     generateResponse,
     chatWithFinancialAdvisor,
-    generateMonthlySummary
+    generateMonthlySummary,
+    scanReceiptImage
 };

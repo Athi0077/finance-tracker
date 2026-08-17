@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import CommandPalette from '../common/CommandPalette';
 
 const pageTitles = {
   '/': 'Dashboard',
@@ -36,12 +37,14 @@ const AppLayout = () => {
       >
         <Header onMenuClick={() => setSidebarOpen(true)} title={title} />
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-5 lg:p-6" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
           <div className="max-w-7xl mx-auto w-full pb-12 animate-fade-in">
             <Outlet />
           </div>
         </main>
       </div>
+      
+      <CommandPalette />
     </div>
   );
 };

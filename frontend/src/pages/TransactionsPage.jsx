@@ -8,10 +8,14 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import toast from 'react-hot-toast';
 
+import { useSearchParams } from 'react-router-dom';
 import TransactionForm from '../components/common/TransactionForm';
 import EmptyState from '../components/common/EmptyState';
+import DateRangePicker from '../components/common/DateRangePicker';
+import TableSkeleton from '../components/common/TableSkeleton';
 
 const TransactionsPage = () => {
+  const [searchParams] = useSearchParams();
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,14 +24,15 @@ const TransactionsPage = () => {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
 
-  // Filters
-  const [search, setSearch] = useState('');
-  const [filterType, setFilterType] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterPayment, setFilterPayment] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
+  // Filters - default to URL params if present
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const [filterType, setFilterType] = useState(searchParams.get('type') || '');
+  const [filterCategory, setFilterCategory] = useState(searchParams.get('categoryId') || '');
+  const [filterPayment, setFilterPayment] = useState(searchParams.get('paymentMethod') || '');
+  const [dateRange, setDateRange] = useState({ start: null, end: null });
+  const [showFilters, setShowFilters] = useState(!!(searchParams.get('type') || searchParams.get('categoryId') || searchParams.get('paymentMethod')));
 
-  const filters = { filterType, filterCategory, filterPayment };
+  const filters = { filterType, filterCategory, filterPayment, startDate: dateRange.start, endDate: dateRange.end };
 
   useEffect(() => {
     fetchCategories();
@@ -35,7 +40,7 @@ const TransactionsPage = () => {
 
   useEffect(() => {
     fetchTransactions();
-  }, [search, filterType, filterCategory, filterPayment, pagination.page]);
+  }, [search, filterType, filterCategory, filterPayment, dateRange, pagination.page]);
 
   const fetchCategories = async () => {
     try {
@@ -46,14 +51,16 @@ const TransactionsPage = () => {
     }
   };
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const params = new URLSearchParams();
       if (search) params.append('search', search);
       if (filterType) params.append('type', filterType);
       if (filterCategory) params.append('categoryId', filterCategory);
       if (filterPayment) params.append('paymentMethod', filterPayment);
+      if (dateRange.start) params.append('startDate', dateRange.start.toISOString());
+      if (dateRange.end) params.append('endDate', dateRange.end.toISOString());
       params.append('page', pagination.page);
       params.append('limit', '15');
 
@@ -63,19 +70,32 @@ const TransactionsPage = () => {
     } catch (error) {
       toast.error('Failed to load transactions');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   const handleCreate = async (formData) => {
+    setShowForm(false);
+    
+    // Optimistic Update
+    const optId = 'temp-' + Date.now();
+    const optimisticTx = {
+      ...formData,
+      _id: optId,
+      amount: Number(formData.amount),
+      categoryId: categories.find(c => c._id === formData.categoryId) || null,
+      createdAt: new Date().toISOString()
+    };
+    setTransactions(prev => [optimisticTx, ...prev]);
+
     try {
       await api.post('/transactions', formData);
-      setShowForm(false);
-      fetchTransactions();
+      fetchTransactions(true); // silent sync
       fetchCategories();
       toast.success('Transaction added!');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add transaction');
+      toast.error(error.response?.data?.message || 'Failed to add transaction. Reverting.');
+      fetchTransactions(true); // revert
     }
   };
 
@@ -92,14 +112,18 @@ const TransactionsPage = () => {
   };
 
   const handleDelete = async (id) => {
+    setDeleteConfirm(null);
+    const previousTransactions = [...transactions];
+    setTransactions(prev => prev.filter(t => t._id !== id)); // Optimistic delete
+    
     try {
       await api.delete(`/transactions/${id}`);
-      setDeleteConfirm(null);
-      fetchTransactions();
+      fetchTransactions(true);
       fetchCategories();
       toast.success('Transaction deleted');
     } catch (error) {
-      toast.error('Failed to delete transaction');
+      toast.error('Failed to delete transaction. Reverting.');
+      setTransactions(previousTransactions); // Revert manually if API fails
     }
   };
 
@@ -211,7 +235,7 @@ const TransactionsPage = () => {
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-5 h-[54px] rounded-xl text-sm font-bold border transition-all duration-300 ${
+            className={`flex items-center gap-2 px-5 h-[54px] rounded-xl text-sm font-bold border transition-all duration-300 shrink-0 ${
               showFilters 
                 ? 'bg-[#18C99A]/10 text-[#18C99A] border-[#18C99A]/30 shadow-[0_0_15px_rgba(24,201,154,0.1)]' 
                 : 'bg-[#0B1022] text-[#94A3B8] border-[#263247] hover:border-[#3A475E] shadow-[0_10px_35px_rgba(0,0,0,0.15)]'
@@ -247,10 +271,21 @@ const TransactionsPage = () => {
       <div className="hidden lg:block w-px h-9 bg-white/[0.08]" />
 
       {/* Filter controls */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-1 gap-2.5">
+      <div className="flex flex-wrap gap-2.5 flex-1">
+        
+        {/* Date Range Picker */}
+        <div className="relative">
+          <DateRangePicker 
+            value={dateRange}
+            onChange={(range) => {
+              setDateRange({ start: range.startDate, end: range.endDate });
+              setPagination(p => ({ ...p, page: 1 }));
+            }}
+          />
+        </div>
 
         {/* Type */}
-        <div className="relative lg:flex-1 lg:max-w-[190px]">
+        <div className="relative flex-1 min-w-[120px] max-w-[180px]">
           <select
             value={filterType}
             onChange={(e) => {
@@ -288,7 +323,7 @@ const TransactionsPage = () => {
         </div>
 
         {/* Category */}
-        <div className="relative lg:flex-1 lg:max-w-[210px]">
+        <div className="relative flex-1 min-w-[160px] max-w-[210px]">
           <select
             value={filterCategory}
             onChange={(e) => {
@@ -330,7 +365,7 @@ const TransactionsPage = () => {
         </div>
 
         {/* Payment Method */}
-        <div className="relative lg:flex-1 lg:max-w-[220px]">
+        <div className="relative flex-1 min-w-[180px] max-w-[220px]">
           <select
             value={filterPayment}
             onChange={(e) => {
@@ -379,6 +414,7 @@ const TransactionsPage = () => {
             setFilterType('');
             setFilterCategory('');
             setFilterPayment('');
+            setDateRange({ start: null, end: null });
             setPagination(p => ({ ...p, page: 1 }));
           }}
           className="
@@ -417,7 +453,7 @@ const TransactionsPage = () => {
         <div className="absolute inset-0 opacity-10 bg-gradient-to-br from-transparent to-[var(--color-surface)] pointer-events-none"></div>
         <div className="relative z-10">
         {loading ? (
-          <LoadingSpinner text="Loading transactions..." />
+          <TableSkeleton />
         ) : transactions.length > 0 ? (
           <div className="space-y-1">
             {transactions.map((tx, i) => (

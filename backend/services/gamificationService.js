@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const Transaction = require('../models/Transaction');
+const Category = require('../models/Category');
 
 const BADGE_DEFINITIONS = {
   first_step: {
@@ -18,6 +20,18 @@ const BADGE_DEFINITIONS = {
     name: 'Consistent Tracker',
     icon: 'Award',
     description: 'Maintained a 7-day tracking streak.'
+  },
+  frugal_friday: {
+    id: 'frugal_friday',
+    name: 'Frugal Friday',
+    icon: 'CalendarHeart',
+    description: 'Completed a Friday with absolutely no expenses!'
+  },
+  savings_master: {
+    id: 'savings_master',
+    name: 'Savings Master',
+    icon: 'PiggyBank',
+    description: 'Kept monthly expenses under 80% of your total budget.'
   }
 };
 
@@ -91,6 +105,45 @@ const updateStreakAndBadges = async (userId) => {
     // Rule 3: 7-Day Streak
     if (user.streak.current >= 7) {
       awardBadge('consistent_7');
+    }
+
+    // Rule 4: Frugal Friday (Evaluated on Saturday or later if last active was Friday)
+    // A simplified approach: if it's currently Friday and they log an *income*, or if it's Saturday and we check Friday.
+    // For immediate reward: if it's Friday, and we check their expenses for today, and it's 0.
+    if (today.getDay() === 5 && !existingBadgeIds.includes('frugal_friday')) { // Friday
+      const fridayExpenses = await Transaction.countDocuments({
+        userId,
+        type: 'expense',
+        date: {
+          $gte: new Date(now.setHours(0,0,0,0)),
+          $lt: new Date(now.setHours(23,59,59,999))
+        }
+      });
+      // We'll optimistically award it if they haven't spent anything yet today
+      if (fridayExpenses === 0) {
+        awardBadge('frugal_friday');
+      }
+    }
+
+    // Rule 5: Savings Master
+    if (!existingBadgeIds.includes('savings_master')) {
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      const [expenseData] = await Transaction.aggregate([
+        { $match: { userId: user._id, type: 'expense', date: { $gte: startOfMonth } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]);
+      const totalExpenses = expenseData?.total || 0;
+
+      const [budgetData] = await Category.aggregate([
+        { $match: { userId: user._id } },
+        { $group: { _id: null, total: { $sum: '$budget' } } }
+      ]);
+      const totalBudget = budgetData?.total || 0;
+
+      if (totalBudget > 0 && totalExpenses > 0 && totalExpenses < (totalBudget * 0.8)) {
+        awardBadge('savings_master');
+      }
     }
 
     if (isStreakUpdated || badgesAwarded) {

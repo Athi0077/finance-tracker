@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { formatCurrency, getBudgetStatus } from '../lib/utils';
 import BudgetProgress from '../components/common/BudgetProgress';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import PageSkeleton from '../components/common/PageSkeleton';
 import CategoryForm from '../components/categories/CategoryForm';
 import { Plus, Pencil, Trash2, FolderOpen } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
@@ -72,7 +72,7 @@ const CategoriesPage = () => {
     return LucideIcons[formatted] || LucideIcons.Circle;
   };
 
-  if (loading) return <LoadingSpinner text="Loading categories..." />;
+  if (loading) return <PageSkeleton />;
 
   return (
     <div className="space-y-8">

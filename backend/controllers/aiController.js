@@ -108,9 +108,31 @@ const getSummary = async (req, res, next) => {
     }
 };
 
+/**
+ * Scan receipt and extract data
+ */
+const scanReceipt = async (req, res, next) => {
+    try {
+        const { image } = req.body; // Expect base64 image data
+        if (!image) {
+            return res.status(400).json({ success: false, message: 'Image data is required' });
+        }
+
+        const extractedData = await aiService.scanReceiptImage(image);
+        
+        res.status(200).json({
+            success: true,
+            data: extractedData
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     chat,
     getHistory,
     getMessages,
-    getSummary
+    getSummary,
+    scanReceipt
 };

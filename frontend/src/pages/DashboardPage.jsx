@@ -6,7 +6,8 @@ import DashboardSkeleton from '../components/common/DashboardSkeleton';
 import {
   Wallet, TrendingUp, TrendingDown, PiggyBank,
   ArrowUpRight, ArrowDownRight, Target, CreditCard,
-  Lightbulb, AlertCircle, Plus, ChevronRight
+  Lightbulb, AlertCircle, Plus, ChevronRight,
+  Settings2, GripVertical, Eye, EyeOff, X
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line
@@ -174,6 +175,67 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
+const DEFAULT_LAYOUT = [
+  { id: 'summary', title: 'Summary Stats', visible: true },
+  { id: 'health', title: 'Health & Spending', visible: true },
+  { id: 'insights', title: 'Categories & Insights', visible: true }
+];
+
+const CustomizeModal = ({ layout, setLayout, onClose }) => {
+  const [localLayout, setLocalLayout] = useState(layout);
+
+  const moveItem = (index, direction) => {
+    const newLayout = [...localLayout];
+    if (direction === 'up' && index > 0) {
+      [newLayout[index - 1], newLayout[index]] = [newLayout[index], newLayout[index - 1]];
+    } else if (direction === 'down' && index < newLayout.length - 1) {
+      [newLayout[index + 1], newLayout[index]] = [newLayout[index], newLayout[index + 1]];
+    }
+    setLocalLayout(newLayout);
+  };
+
+  const toggleVisible = (index) => {
+    const newLayout = [...localLayout];
+    newLayout[index].visible = !newLayout[index].visible;
+    setLocalLayout(newLayout);
+  };
+
+  const handleSave = () => {
+    setLayout(localLayout);
+    localStorage.setItem('dashboard_layout', JSON.stringify(localLayout));
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="absolute inset-0" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-[#0B1022] border border-white/10 rounded-2xl p-5 shadow-2xl animate-scale-in">
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-lg font-bold text-white">Customize Layout</h2>
+          <button onClick={onClose} className="text-[#94A3B8] hover:text-white"><X className="w-5 h-5"/></button>
+        </div>
+        
+        <div className="space-y-2 mb-6">
+          {localLayout.map((item, index) => (
+            <div key={item.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+              <div className="flex flex-col gap-1">
+                <button onClick={() => moveItem(index, 'up')} disabled={index === 0} className="text-[#64748B] hover:text-white disabled:opacity-30">▲</button>
+                <button onClick={() => moveItem(index, 'down')} disabled={index === localLayout.length - 1} className="text-[#64748B] hover:text-white disabled:opacity-30">▼</button>
+              </div>
+              <span className="flex-1 text-sm font-medium text-white">{item.title}</span>
+              <button onClick={() => toggleVisible(index)} className="text-[#94A3B8] hover:text-white">
+                {item.visible ? <Eye className="w-5 h-5 text-[#18C99A]" /> : <EyeOff className="w-5 h-5" />}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <button onClick={handleSave} className="w-full btn-primary h-11">Save Layout</button>
+      </div>
+    </div>
+  );
+};
+
 const DashboardPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -181,7 +243,12 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [showCustomize, setShowCustomize] = useState(false);
   const [formType, setFormType] = useState('expense');
+  const [layout, setLayout] = useState(() => {
+    const saved = localStorage.getItem('dashboard_layout');
+    return saved ? JSON.parse(saved) : DEFAULT_LAYOUT;
+  });
 
   useEffect(() => {
     fetchDashboardData();
@@ -222,13 +289,34 @@ const DashboardPage = () => {
   };
 
   const handleCreateTransaction = async (formData) => {
+    // 1. Close form immediately
+    setShowForm(false);
+
+    // 2. Optimistic State Update
+    const amount = Number(formData.amount);
+    const type = formData.type;
+
+    setData(prev => {
+      if (!prev.summary) return prev;
+      const newSummary = { ...prev.summary };
+      if (type === 'income') {
+        newSummary.monthlyIncome += amount;
+        newSummary.totalBalance += amount;
+      } else if (type === 'expense') {
+        newSummary.monthlyExpenses += amount;
+        newSummary.totalBalance -= amount;
+      }
+      return { ...prev, summary: newSummary };
+    });
+
+    // 3. Background Sync
     try {
       await api.post('/transactions', formData);
-      setShowForm(false);
-      fetchDashboardData();
+      fetchDashboardData(); // Silent background refresh
       toast.success('Transaction added successfully!');
     } catch (error) {
-      toast.error('Failed to add transaction');
+      toast.error('Failed to add transaction. Reverting.');
+      fetchDashboardData(); // Revert on failure
     }
   };
 
@@ -263,21 +351,32 @@ const DashboardPage = () => {
             <span className="text-[13px] font-bold text-orange-400 tracking-wide">{summary.streak.current} Day Streak!</span>
           </div>
         )}
+        <button
+          onClick={() => setShowCustomize(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm font-medium text-white ml-auto sm:ml-4"
+        >
+          <Settings2 className="w-4 h-4" />
+          Customize
+        </button>
       </motion.div>
 
-      {/* Summary Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 w-full min-w-0">
-        <StatCard title="Total Balance" value={summary.totalBalance} icon={Wallet} color="var(--color-blue)" trend={5.2} trendLabel="+5.2%" sparklineData={getMockSparkline(5.2)} />
-        <StatCard title="Income" value={summary.monthlyIncome} icon={TrendingUp} color="var(--color-success)" trend={8.1} trendLabel="+8.1%" onClick={() => { setFormType('income'); setShowForm(true); }} sparklineData={getMockSparkline(8.1)} />
-        <StatCard title="Expenses" value={summary.monthlyExpenses} icon={TrendingDown} color="var(--color-danger)" trend={-2.4} trendLabel="-2.4%" onClick={() => { setFormType('expense'); setShowForm(true); }} sparklineData={getMockSparkline(-2.4)} />
-        <StatCard title="Savings" value={summary.monthlySavings} icon={PiggyBank} color="var(--color-primary)" trend={12.5} trendLabel="+12.5%" sparklineData={getMockSparkline(12.5)} />
-      </div>
-
-      {/* Main Grid: Financial Health & Spending Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.8fr)] gap-5 lg:gap-6 w-full min-w-0">
-
-        {/* Financial Health */}
-        {health && (
+      {/* Render based on layout */}
+      {layout.filter(l => l.visible).map((section) => {
+        if (section.id === 'summary') {
+          return (
+            <div key="summary" className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 w-full min-w-0">
+              <StatCard title="Total Balance" value={summary.totalBalance} icon={Wallet} color="var(--color-blue)" trend={5.2} trendLabel="+5.2%" sparklineData={getMockSparkline(5.2)} />
+              <StatCard title="Income" value={summary.monthlyIncome} icon={TrendingUp} color="var(--color-success)" trend={8.1} trendLabel="+8.1%" onClick={() => { setFormType('income'); setShowForm(true); }} sparklineData={getMockSparkline(8.1)} />
+              <StatCard title="Expenses" value={summary.monthlyExpenses} icon={TrendingDown} color="var(--color-danger)" trend={-2.4} trendLabel="-2.4%" onClick={() => { setFormType('expense'); setShowForm(true); }} sparklineData={getMockSparkline(-2.4)} />
+              <StatCard title="Savings" value={summary.monthlySavings} icon={PiggyBank} color="var(--color-primary)" trend={12.5} trendLabel="+12.5%" sparklineData={getMockSparkline(12.5)} />
+            </div>
+          );
+        }
+        
+        if (section.id === 'health') {
+          return (
+            <div key="health" className="grid grid-cols-1 lg:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.8fr)] gap-5 lg:gap-6 w-full min-w-0">
+              {health && (
           <motion.div
             variants={itemVariants}
             whileHover={{ y: -4, scale: 1.01 }}
@@ -349,10 +448,12 @@ const DashboardPage = () => {
           </div>
         </motion.div>
       </div>
+          );
+        }
 
-      {/* Bottom Grid: Categories & Insights */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-5 lg:gap-6 w-full min-w-0">
-
+        if (section.id === 'insights') {
+          return (
+            <div key="insights" className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-5 lg:gap-6 w-full min-w-0">
         {/* Categories Card */}
         <motion.div variants={itemVariants} className="rounded-2xl p-5 lg:p-6 flex flex-col" style={baseCardStyle}>
           <div className="flex items-center justify-between mb-5">
@@ -422,6 +523,10 @@ const DashboardPage = () => {
           )}
         </motion.div>
       </div>
+          );
+        }
+        return null;
+      })}
 
       {/* Transaction Form Modal */}
       {showForm && (
@@ -430,6 +535,15 @@ const DashboardPage = () => {
           initialType={formType}
           onSubmit={handleCreateTransaction}
           onClose={() => setShowForm(false)}
+        />
+      )}
+
+      {/* Customize Layout Modal */}
+      {showCustomize && (
+        <CustomizeModal 
+          layout={layout}
+          setLayout={setLayout}
+          onClose={() => setShowCustomize(false)}
         />
       )}
     </motion.div>

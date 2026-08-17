@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { formatDate } from '../lib/utils';
-import { User, Mail, Calendar, Shield, Loader2, Award, Flame, Footprints, Palette } from 'lucide-react';
+import { User, Mail, Calendar, Shield, Loader2, Award, Flame, Footprints, Palette, CalendarHeart, PiggyBank } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ProfilePage = () => {
@@ -272,7 +272,14 @@ const ProfilePage = () => {
             {user?.badges?.length > 0 ? (
               <div className="space-y-4">
                 {user.badges.map((badge, idx) => {
-                  const Icon = badge.icon === 'Flame' ? Flame : badge.icon === 'Footprints' ? Footprints : Award;
+                  const icons = {
+                    Flame: Flame,
+                    Footprints: Footprints,
+                    CalendarHeart: CalendarHeart,
+                    PiggyBank: PiggyBank
+                  };
+                  const Icon = icons[badge.icon] || Award;
+                  
                   return (
                     <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-colors group">
                       <div className="w-12 h-12 rounded-xl flex items-center justify-center border border-[var(--color-primary)]/20 shadow-[0_0_15px_rgba(249,115,22,0.15)] group-hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-shadow" style={{ background: 'linear-gradient(135deg, rgba(249,115,22,0.15), rgba(249,115,22,0.05))' }}>

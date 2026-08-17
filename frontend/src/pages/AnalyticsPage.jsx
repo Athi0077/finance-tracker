@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from '../lib/utils';
 import { Loader2, TrendingUp, TrendingDown, Target, Wallet } from 'lucide-react';
+import PageSkeleton from '../components/common/PageSkeleton';
 
 const COLORS = ['#3B82F6', '#10B981', '#F97316', '#8B5CF6', '#EC4899', '#06B6D4', '#EAB308'];
 
@@ -101,7 +102,10 @@ const StatCard = ({ label, value, icon: Icon, color, sparklineData }) => (
   </div>
 );
 
+import { useNavigate } from 'react-router-dom';
+
 const AnalyticsPage = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -126,11 +130,7 @@ const AnalyticsPage = () => {
   }, [filter]);
 
   if (loading && !data) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary)]" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (
@@ -205,12 +205,22 @@ const AnalyticsPage = () => {
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
                     <Bar dataKey="income" name="Income" radius={[4, 4, 0, 0]} maxBarSize={28}>
                       {data.charts.monthlyTrend.map((entry, index) => (
-                        <Cell key={`cell-inc-${index}`} fill="url(#colorIncomeA)" />
+                        <Cell 
+                          key={`cell-inc-${index}`} 
+                          fill="url(#colorIncomeA)" 
+                          onClick={() => navigate('/transactions?type=income')}
+                          style={{ cursor: 'pointer' }}
+                        />
                       ))}
                     </Bar>
                     <Bar dataKey="expense" name="Expense" radius={[4, 4, 0, 0]} maxBarSize={28}>
                       {data.charts.monthlyTrend.map((entry, index) => (
-                        <Cell key={`cell-exp-${index}`} fill="url(#colorExpenseA)" />
+                        <Cell 
+                          key={`cell-exp-${index}`} 
+                          fill="url(#colorExpenseA)" 
+                          onClick={() => navigate('/transactions?type=expense')}
+                          style={{ cursor: 'pointer' }}
+                        />
                       ))}
                     </Bar>
                     <defs>
@@ -244,7 +254,19 @@ const AnalyticsPage = () => {
                         stroke="none"
                       >
                         {data.charts.categorySpending.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={entry.color || COLORS[index % COLORS.length]} 
+                            onClick={() => {
+                              // If entry has a categoryId, we can filter. The backend needs to provide this.
+                              if (entry.categoryId) {
+                                navigate(`/transactions?categoryId=${entry.categoryId}`);
+                              } else {
+                                navigate(`/transactions?search=${encodeURIComponent(entry.name)}`);
+                              }
+                            }}
+                            style={{ cursor: 'pointer' }}
+                          />
                         ))}
                       </Pie>
                       <Tooltip content={<CustomTooltip />} />

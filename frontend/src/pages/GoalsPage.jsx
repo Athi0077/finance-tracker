@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { Loader2, Plus, Target, Trash2 } from 'lucide-react';
+import { Plus, Target, Trash2 } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
+import PageSkeleton from '../components/common/PageSkeleton';
 
 const GoalsPage = () => {
   const [goals, setGoals] = useState([]);
@@ -60,11 +61,7 @@ const GoalsPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary)]" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (
