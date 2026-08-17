@@ -93,7 +93,7 @@ const Header = ({ onMenuClick, title }) => {
           {/* Dropdown */}
           {dropdownOpen && (
             <div
-              className="absolute right-0 top-12 w-48 rounded-xl py-1 animate-scale-in z-50"
+              className="absolute right-0 top-[calc(100%+8px)] w-52 rounded-[16px] p-2 animate-scale-in z-50 flex flex-col gap-1"
               style={{
                 background: 'var(--color-surface)',
                 border: '1px solid var(--color-border)',
@@ -102,19 +102,19 @@ const Header = ({ onMenuClick, title }) => {
             >
               <button
                 onClick={() => { navigate('/profile'); setDropdownOpen(false); }}
-                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm hover:bg-white/5 transition-colors text-left"
-                style={{ color: 'var(--color-text-secondary)' }}
+                className="flex items-center gap-3 w-full px-3 py-2.5 text-[14px] font-medium rounded-[10px] transition-all hover:bg-white/5 text-[var(--color-text-secondary)] hover:text-[var(--color-text)]"
               >
-                <User className="w-4 h-4" />
+                <User className="w-[18px] h-[18px]" />
                 Profile
               </button>
-              <div style={{ borderTop: '1px solid var(--color-border)' }} />
+              
+              <div className="my-0.5 mx-2" style={{ borderTop: '1px solid var(--color-border-light)' }} />
+              
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm hover:bg-white/5 transition-colors text-left"
-                style={{ color: 'var(--color-danger)' }}
+                className="flex items-center gap-3 w-full px-3 py-2.5 text-[14px] font-medium rounded-[10px] transition-all hover:bg-red-500/10 text-[var(--color-danger)]"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-[18px] h-[18px]" />
                 Logout
               </button>
             </div>
