@@ -112,7 +112,7 @@ const TransactionsPage = () => {
       const row = [
         formatDateForInput(tx.date),
         tx.type,
-        tx.categoryId?.name || 'Uncategorized',
+        tx.categoryId?.name || tx.description || 'Uncategorized',
         `"${tx.description.replace(/"/g, '""')}"`,
         tx.amount,
         tx.paymentMethod
@@ -455,7 +455,7 @@ const TransactionsPage = () => {
                           color: tx.categoryId?.color || '#94A3B8'
                         }}
                       >
-                        {tx.categoryId?.name || 'Uncategorized'}
+                        {tx.categoryId?.name || tx.description || 'Uncategorized'}
                       </span>
                       <span className="w-1 h-1 rounded-full bg-white/10" />
                       <span className="text-[#94A3B8] font-medium">{tx.paymentMethod}</span>
