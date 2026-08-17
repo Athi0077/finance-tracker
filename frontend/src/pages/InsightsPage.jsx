@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import { Lightbulb, AlertTriangle, TrendingUp, Target, CreditCard, CheckCircle2, XCircle } from 'lucide-react';
 
 const InsightsPage = () => {
@@ -13,18 +13,23 @@ const InsightsPage = () => {
         const fetchAll = async () => {
             try {
                 const [iRes, aRes, pRes, rRes] = await Promise.all([
-                    axios.get('/api/insights'),
-                    axios.get('/api/analytics/anomalies'),
-                    axios.get('/api/analytics/predictions'),
-                    axios.get('/api/analytics/recommendations')
+                    api.get('/insights'),
+                    api.get('/analytics/anomalies'),
+                    api.get('/analytics/predictions'),
+                    api.get('/analytics/recommendations')
                 ]);
                 
-                setInsights(iRes.data.data);
-                setAnomalies(aRes.data.data);
-                setPredictions(pRes.data.data);
-                setRecommendations(rRes.data.data);
+                setInsights(iRes.data?.data || []);
+                setAnomalies(aRes.data?.data || []);
+                setPredictions(pRes.data?.data || []);
+                setRecommendations(rRes.data?.data || []);
             } catch(e) {
                 console.error(e);
+                // Ensure arrays stay valid on error
+                setInsights([]);
+                setAnomalies([]);
+                setPredictions([]);
+                setRecommendations([]);
             } finally {
                 setLoading(false);
             }

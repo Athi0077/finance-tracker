@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -110,9 +110,9 @@ const AnalyticsPage = () => {
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`/api/analytics?filter=${filter}`);
-      setData(res.data.data);
-      const healthRes = await axios.get('/api/analytics/health');
+      const res = await api.get(`/analytics?filter=${filter}`);
+      setData(res.data?.data || {});
+      const healthRes = await api.get('/analytics/health');
       setHealth(healthRes.data.data);
     } catch (err) {
       console.error(err);

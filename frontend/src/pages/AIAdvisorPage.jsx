@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import { Sparkles, Send, Bot, User, Loader2, AlertCircle, TrendingUp, Utensils, PiggyBank, Wallet } from 'lucide-react';
 
 const AIAdvisorPage = () => {
@@ -39,7 +39,7 @@ const AIAdvisorPage = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post('/api/ai/chat', {
+            const res = await api.post('/ai/chat', {
                 message: userMsg,
                 conversationId: conversationId
             });

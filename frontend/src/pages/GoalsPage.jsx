@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import { Loader2, Plus, Target, Trash2 } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
 
@@ -11,7 +11,7 @@ const GoalsPage = () => {
 
   const fetchGoals = async () => {
     try {
-      const res = await axios.get('/api/goals');
+      const res = await api.get('/goals');
       setGoals(res.data.data);
     } catch (err) {
       console.error(err);
@@ -27,7 +27,7 @@ const GoalsPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/goals', formData);
+      await api.post('/goals', formData);
       setShowForm(false);
       setFormData({ name: '', targetAmount: '', currentAmount: '', targetDate: '' });
       fetchGoals();
@@ -39,7 +39,7 @@ const GoalsPage = () => {
   const handleDelete = async (id) => {
     if (confirm('Are you sure you want to delete this goal?')) {
       try {
-        await axios.delete(`/api/goals/${id}`);
+        await api.delete(`/goals/${id}`);
         fetchGoals();
       } catch (err) {
         console.error(err);
@@ -51,7 +51,7 @@ const GoalsPage = () => {
     const contribution = prompt('Enter contribution amount:');
     if (contribution && !isNaN(contribution)) {
       try {
-        await axios.post(`/api/goals/${id}/contributions`, { amount: Number(contribution) });
+        await api.post(`/goals/${id}/contributions`, { amount: Number(contribution) });
         fetchGoals();
       } catch (err) {
         console.error(err);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import { Loader2, Plus, CreditCard, Trash2, Calendar, Edit2 } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
 
@@ -19,8 +19,8 @@ const SubscriptionsPage = () => {
   const fetchData = async () => {
     try {
       const [subsRes, catsRes] = await Promise.all([
-        axios.get('/api/subscriptions'),
-        axios.get('/api/categories')
+        api.get('/subscriptions'),
+        api.get('/categories')
       ]);
       setSubscriptions(subsRes.data.data);
       setCategories(catsRes.data.data);
@@ -38,7 +38,7 @@ const SubscriptionsPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/subscriptions', formData);
+      await api.post('/subscriptions', formData);
       setShowForm(false);
       setFormData({ name: '', amount: '', billingCycle: 'Monthly', categoryId: categories[0]?._id || '', nextBillingDate: '', paymentMethod: 'Card' });
       fetchData();
@@ -50,7 +50,7 @@ const SubscriptionsPage = () => {
   const handleDelete = async (id) => {
     if (confirm('Are you sure you want to delete this subscription?')) {
       try {
-        await axios.delete(`/api/subscriptions/${id}`);
+        await api.delete(`/subscriptions/${id}`);
         fetchData();
       } catch (err) {
         console.error(err);
