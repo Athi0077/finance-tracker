@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { formatCurrency, getGreeting } from '../lib/utils';
@@ -15,6 +15,35 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import TransactionForm from '../components/common/TransactionForm';
+
+// ── Animated count-up hook ──────────────────────────────────────────────────
+const useCountUp = (target, duration = 800) => {
+  const [display, setDisplay] = useState(target);
+  const prevRef = useRef(target);
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    const from = prevRef.current;
+    const to = target;
+    if (from === to) return;
+    prevRef.current = to;
+
+    const start = performance.now();
+    const animate = (now) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(from + (to - from) * eased);
+      if (progress < 1) rafRef.current = requestAnimationFrame(animate);
+    };
+    rafRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [target, duration]);
+
+  return display;
+};
+// ───────────────────────────────────────────────────────────────────────────
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -41,57 +70,60 @@ const baseCardStyle = {
   boxShadow: 'var(--color-card-shadow)'
 };
 
-const StatCard = ({ title, value, icon: Icon, trend, trendLabel, color, onClick, sparklineData }) => (
-  <motion.div
-    variants={itemVariants}
-    whileHover={onClick ? { y: -4, scale: 1.02 } : { y: -1 }}
-    whileTap={onClick ? { scale: 0.98 } : {}}
-    onClick={onClick}
-    className={`rounded-2xl relative group overflow-hidden ${onClick ? 'cursor-pointer select-none' : ''}`}
-    style={{ ...baseCardStyle, minHeight: '130px' }}
-  >
-    {sparklineData && (
-      <div className="absolute inset-x-0 bottom-0 h-16 opacity-20 pointer-events-none z-0">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={sparklineData}>
-            <Line type="monotone" dataKey="v" stroke={color} strokeWidth={3} dot={false} isAnimationActive={true} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    )}
-    
-    <div className="p-4 sm:p-5 lg:p-6 relative z-10 flex flex-col justify-between h-full min-h-[130px]">
-      <div className="flex items-center justify-between mb-4">
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center relative shrink-0"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}
-        >
-          <Icon className="w-5 h-5 relative z-10" style={{ color }} />
+const StatCard = ({ title, value, icon: Icon, trend, trendLabel, color, onClick, sparklineData }) => {
+  const animatedValue = useCountUp(value ?? 0);
+  return (
+    <motion.div
+      variants={itemVariants}
+      whileHover={onClick ? { y: -4, scale: 1.02 } : { y: -1 }}
+      whileTap={onClick ? { scale: 0.98 } : {}}
+      onClick={onClick}
+      className={`rounded-2xl relative group overflow-hidden ${onClick ? 'cursor-pointer select-none' : ''}`}
+      style={{ ...baseCardStyle, minHeight: '130px' }}
+    >
+      {sparklineData && (
+        <div className="absolute inset-x-0 bottom-0 h-16 opacity-20 pointer-events-none z-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={sparklineData}>
+              <Line type="monotone" dataKey="v" stroke={color} strokeWidth={3} dot={false} isAnimationActive={true} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
-        
-        <div className="flex items-center gap-2">
-          {trend !== undefined && (
-            <span className="flex items-center gap-0.5 text-[12px] font-bold px-2 py-0.5 rounded-[8px] border"
-              style={{ 
-                color: trend >= 0 ? 'var(--color-success)' : 'var(--color-danger)',
-                background: trend >= 0 ? 'var(--color-success-bg)' : 'var(--color-danger-bg)',
-                borderColor: trend >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'
-              }}>
-              {trend >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-              {trendLabel}
-            </span>
-          )}
+      )}
+      
+      <div className="p-4 sm:p-5 lg:p-6 relative z-10 flex flex-col justify-between h-full min-h-[130px]">
+        <div className="flex items-center justify-between mb-4">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center relative shrink-0"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}
+          >
+            <Icon className="w-5 h-5 relative z-10" style={{ color }} />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {trend !== undefined && (
+              <span className="flex items-center gap-0.5 text-[12px] font-bold px-2 py-0.5 rounded-[8px] border"
+                style={{ 
+                  color: trend >= 0 ? 'var(--color-success)' : 'var(--color-danger)',
+                  background: trend >= 0 ? 'var(--color-success-bg)' : 'var(--color-danger-bg)',
+                  borderColor: trend >= 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'
+                }}>
+                {trend >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                {trendLabel}
+              </span>
+            )}
+          </div>
+        </div>
+        <div>
+          <p className="text-[20px] sm:text-[28px] font-bold tracking-tight text-white leading-none mb-1.5 drop-shadow-md">
+            {formatCurrency(animatedValue)}
+          </p>
+          <p className="text-[13px] font-medium drop-shadow-sm" style={{ color: 'var(--color-text-secondary)' }}>{title}</p>
         </div>
       </div>
-      <div>
-        <p className="text-[20px] sm:text-[28px] font-bold tracking-tight text-white leading-none mb-1.5 drop-shadow-md">
-          {formatCurrency(value)}
-        </p>
-        <p className="text-[13px] font-medium drop-shadow-sm" style={{ color: 'var(--color-text-secondary)' }}>{title}</p>
-      </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 const CircularProgress = ({ score }) => {
   const radius = 38;
