@@ -83,7 +83,7 @@ const TransactionForm = ({ transaction, categories, onSubmit, onClose, initialTy
   const selectBg = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394A3B8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={overlayStyle}>
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4" style={overlayStyle}>
       <div className="absolute inset-0" onClick={onClose} />
 
       <div
