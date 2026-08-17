@@ -515,16 +515,16 @@ const TransactionsPage = () => {
             <button
               onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
               disabled={pagination.page <= 1}
-              className="p-2.5 rounded-xl bg-[#0B1022] border border-white/[0.08] hover:border-white/[0.15] text-[#94A3B8] disabled:opacity-30 disabled:hover:border-white/[0.08] transition-all duration-200"
+              className="w-12 h-12 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-[#0B1022] border border-white/[0.08] hover:border-white/[0.15] text-[#94A3B8] disabled:opacity-30 disabled:hover:border-white/[0.08] transition-all duration-200"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
             <button
               onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
               disabled={pagination.page >= pagination.pages}
-              className="p-2.5 rounded-xl bg-[#0B1022] border border-white/[0.08] hover:border-white/[0.15] text-[#94A3B8] disabled:opacity-30 disabled:hover:border-white/[0.08] transition-all duration-200"
+              className="w-12 h-12 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-[#0B1022] border border-white/[0.08] hover:border-white/[0.15] text-[#94A3B8] disabled:opacity-30 disabled:hover:border-white/[0.08] transition-all duration-200"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>

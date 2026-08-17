@@ -98,6 +98,11 @@ const getTransactions = async (userId, query) => {
   // Sort
   const sort = {};
   sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+  
+  // Secondary sort to ensure newest added transactions on the same date appear first
+  if (sortBy === 'date') {
+    sort.createdAt = -1;
+  }
 
   // Pagination
   const skip = (parseInt(page) - 1) * parseInt(limit);

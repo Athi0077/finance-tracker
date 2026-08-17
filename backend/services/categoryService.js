@@ -66,7 +66,7 @@ const enrichCategoryWithBudget = async (category, month, year) => {
  * Get all categories for a user with budget data
  */
 const getCategories = async (userId, month, year) => {
-  const categories = await Category.find({ userId }).sort({ name: 1 });
+  const categories = await Category.find({ userId }).sort({ createdAt: -1 });
 
   const enriched = await Promise.all(
     categories.map((cat) => enrichCategoryWithBudget(cat, month, year))
