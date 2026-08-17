@@ -169,10 +169,10 @@ const RegisterPage = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="John Doe"
+                    style={{ paddingLeft: '48px' }}
                     className="
                       w-full
                       h-[54px]
-                      pl-12
                       pr-4
                       rounded-xl
                       bg-[#080D1C]
@@ -214,10 +214,10 @@ const RegisterPage = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
+                    style={{ paddingLeft: '48px' }}
                     className="
                       w-full
                       h-[54px]
-                      pl-12
                       pr-4
                       rounded-xl
                       bg-[#080D1C]
@@ -259,10 +259,10 @@ const RegisterPage = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Min. 6 characters"
+                    style={{ paddingLeft: '48px' }}
                     className="
                       w-full
                       h-[54px]
-                      pl-12
                       pr-12
                       rounded-xl
                       bg-[#080D1C]
@@ -336,10 +336,10 @@ const RegisterPage = () => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm your password"
+                    style={{ paddingLeft: '48px' }}
                     className="
                       w-full
                       h-[54px]
-                      pl-12
                       pr-4
                       rounded-xl
                       bg-[#080D1C]

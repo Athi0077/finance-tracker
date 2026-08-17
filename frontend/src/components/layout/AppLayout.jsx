@@ -8,6 +8,12 @@ const pageTitles = {
   '/categories': 'Categories',
   '/transactions': 'Transactions',
   '/profile': 'Profile',
+  '/analytics': 'Analytics',
+  '/goals': 'Financial Goals',
+  '/subscriptions': 'Subscriptions',
+  '/ai-advisor': 'AI Advisor',
+  '/insights': 'Insights',
+  '/wallets': 'Shared Wallets',
 };
 
 const AppLayout = () => {

@@ -191,10 +191,10 @@ const LoginPage = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     autoComplete="email"
+                    style={{ paddingLeft: '48px' }}
                     className="
                       w-full
                       h-[54px]
-                      pl-12
                       pr-4
                       rounded-xl
                       bg-[#080D1C]
@@ -246,10 +246,10 @@ const LoginPage = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
                     autoComplete="current-password"
+                    style={{ paddingLeft: '48px' }}
                     className="
                       w-full
                       h-[54px]
-                      pl-12
                       pr-12
                       rounded-xl
                       bg-[#080D1C]
