@@ -21,7 +21,7 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? process.env.CLIENT_URL
+    ? [process.env.CLIENT_URL, 'https://finance-tracker-0l8c.onrender.com']
     : /^http:\/\/localhost:\d+$/,
   credentials: true,
 }));
