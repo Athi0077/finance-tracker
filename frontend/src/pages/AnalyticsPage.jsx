@@ -182,7 +182,7 @@ const AnalyticsPage = () => {
       {data && (
         <>
           {/* Summary Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full min-w-0">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full min-w-0">
             {[
               { label: 'Total Income', value: data.totalIncome, icon: TrendingUp, color: 'var(--color-success)', trend: 1 },
               { label: 'Total Expenses', value: data.totalExpenses, icon: TrendingDown, color: 'var(--color-danger)', trend: -1 },
