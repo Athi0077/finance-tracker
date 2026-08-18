@@ -276,7 +276,10 @@ const CategoriesPage = () => {
                 {/* GPay Button */}
                 <div className="mt-4 pt-4 border-t border-white/[0.04] relative z-10">
                   <button
-                    onClick={() => setSelectedGPayCategory(cat)}
+                    onClick={() => {
+                      window.location.href = 'upi://pay?pa=aathi1234@oksbi&pn=FinanceTracker&cu=INR';
+                      setSelectedGPayCategory(cat);
+                    }}
                     disabled={balance <= 0}
                     className="w-full py-2.5 rounded-xl font-bold text-white bg-[#131B31] border border-white/[0.08] hover:bg-white/[0.05] hover:border-[#18C99A]/50 transition-all flex items-center justify-center gap-2 group/btn disabled:opacity-50 disabled:cursor-not-allowed"
                   >
