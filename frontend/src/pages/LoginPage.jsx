@@ -45,7 +45,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050816] text-[#F8FAFC] font-sans grid grid-cols-1 lg:grid-cols-2 overflow-x-hidden selection:bg-[#18C99A]/30">
+    <div className="min-h-screen bg-[#050816] text-[#F8FAFC] font-sans grid grid-cols-1 lg:grid-cols-[1.08fr_0.92fr] overflow-x-hidden selection:bg-[#18C99A]/30">
 
       {/* =====================================================
           LEFT BRANDING SECTION
@@ -144,9 +144,9 @@ const LoginPage = () => {
         <div className="absolute w-[450px] h-[450px] bg-[#3B82F6]/5 rounded-full blur-[120px] pointer-events-none" />
 
         {/* Login card */}
-        <div className="relative z-10 w-full max-w-[460px] mx-4 flex flex-col justify-center">
+        <div className="relative z-10 w-full max-w-[430px] mx-4 flex flex-col justify-center">
 
-          <div className="rounded-[24px] border border-white/[0.10] bg-[#0B1022] shadow-[0_25px_80px_rgba(0,0,0,0.45)] p-8">
+          <div className="rounded-[26px] border border-white/[0.10] bg-[#0B1022]/95 shadow-[0_25px_80px_rgba(0,0,0,0.45)] p-7 sm:p-8">
 
             {/* Header */}
             <div className="mb-8">

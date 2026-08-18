@@ -10,6 +10,7 @@ const RegisterPage = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050816] text-[#F8FAFC] font-sans grid grid-cols-1 lg:grid-cols-2 overflow-x-hidden selection:bg-[#18C99A]/30">
+    <div className="min-h-screen bg-[#050816] text-[#F8FAFC] font-sans grid grid-cols-1 lg:grid-cols-[1.08fr_0.92fr] overflow-x-hidden selection:bg-[#18C99A]/30">
 
       {/* =====================================================
           LEFT BRANDING SECTION
@@ -123,9 +124,9 @@ const RegisterPage = () => {
         <div className="absolute w-[450px] h-[450px] bg-[#3B82F6]/5 rounded-full blur-[120px] pointer-events-none" />
 
         {/* Signup card */}
-        <div className="relative z-10 w-full max-w-[460px] mx-4 flex flex-col justify-center">
+        <div className="relative z-10 w-full max-w-[430px] mx-4 flex flex-col justify-center">
 
-          <div className="rounded-[24px] border border-white/[0.10] bg-[#0B1022] shadow-[0_25px_80px_rgba(0,0,0,0.45)] p-8">
+          <div className="rounded-[26px] border border-white/[0.10] bg-[#0B1022]/95 shadow-[0_25px_80px_rgba(0,0,0,0.45)] p-7 sm:p-8">
 
             {/* Header */}
             <div className="mb-8">
@@ -133,7 +134,7 @@ const RegisterPage = () => {
                 <Lock className="w-5 h-5 text-[#18C99A]" />
               </div>
 
-              <h2 className="text-3xl sm:text-[32px] font-bold tracking-[-1px] text-[#F8FAFC]">
+              <h2 className="text-[30px] sm:text-[32px] font-bold tracking-[-1px] text-[#F8FAFC]">
                 Create your account
               </h2>
 
@@ -259,6 +260,7 @@ const RegisterPage = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Min. 6 characters"
+                    autoComplete="new-password"
                     style={{ paddingLeft: '48px' }}
                     className="
                       w-full
@@ -284,11 +286,7 @@ const RegisterPage = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={
-                      showPassword
-                        ? 'Hide password'
-                        : 'Show password'
-                    }
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                     className="
                       absolute
                       right-2.5
@@ -332,15 +330,16 @@ const RegisterPage = () => {
 
                   <input
                     id="register-confirm-password"
-                    type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm your password"
+                    autoComplete="new-password"
                     style={{ paddingLeft: '48px' }}
                     className="
                       w-full
                       h-[54px]
-                      pr-4
+                      pr-12
                       rounded-xl
                       bg-[#080D1C]
                       border border-[#263247]
@@ -357,6 +356,34 @@ const RegisterPage = () => {
                       duration-200
                     "
                   />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    className="
+                      absolute
+                      right-2.5
+                      top-1/2
+                      -translate-y-1/2
+                      w-9
+                      h-9
+                      rounded-lg
+                      flex
+                      items-center
+                      justify-center
+                      text-[#64748B]
+                      hover:text-white
+                      hover:bg-white/5
+                      transition-all
+                    "
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-[18px] h-[18px]" />
+                    ) : (
+                      <Eye className="w-[18px] h-[18px]" />
+                    )}
+                  </button>
                 </div>
               </div>
 
