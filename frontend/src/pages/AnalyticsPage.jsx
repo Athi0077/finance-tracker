@@ -106,6 +106,7 @@ import { useNavigate } from 'react-router-dom';
 
 const AnalyticsPage = () => {
   const navigate = useNavigate();
+  const currencySymbol = localStorage.getItem('currency') || '₹';
   const [data, setData] = useState(null);
   const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -201,7 +202,7 @@ const AnalyticsPage = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data.charts.monthlyTrend} margin={{ top: 10, right: 10, left: -25, bottom: 0 }} barGap={4}>
                     <XAxis dataKey="month" stroke="#94A3B8" fontSize={11} fontWeight={600} tickLine={false} axisLine={false} dy={8} />
-                    <YAxis stroke="#94A3B8" fontSize={11} fontWeight={600} tickLine={false} axisLine={false} tickFormatter={(val) => `₹${val / 1000}k`} />
+                    <YAxis stroke="#94A3B8" fontSize={11} fontWeight={600} tickLine={false} axisLine={false} tickFormatter={(val) => `${currencySymbol}${val / 1000}k`} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
                     <Bar dataKey="income" name="Income" radius={[4, 4, 0, 0]} maxBarSize={28}>
                       {data.charts.monthlyTrend.map((entry, index) => (
@@ -285,7 +286,7 @@ const AnalyticsPage = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={data.charts.dailySpending} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                     <XAxis dataKey="date" stroke="#94A3B8" fontSize={11} fontWeight={600} tickLine={false} axisLine={false} tickFormatter={(val) => val.slice(5)} dy={8} />
-                    <YAxis stroke="#94A3B8" fontSize={11} fontWeight={600} tickLine={false} axisLine={false} tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`} />
+                    <YAxis stroke="#94A3B8" fontSize={11} fontWeight={600} tickLine={false} axisLine={false} tickFormatter={(val) => `${currencySymbol}${(val / 1000).toFixed(0)}k`} />
                     <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.05)', strokeWidth: 2 }} />
                     <Line
                       type="monotone"

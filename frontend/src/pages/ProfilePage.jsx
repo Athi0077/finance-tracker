@@ -147,6 +147,7 @@ const ProfilePage = () => {
                 <option value="$" className="bg-[#0f0f16]">$ (USD)</option>
                 <option value="€" className="bg-[#0f0f16]">€ (EUR)</option>
                 <option value="£" className="bg-[#0f0f16]">£ (GBP)</option>
+                <option value="¥" className="bg-[#0f0f16]">¥ (JPY)</option>
               </select>
             </div>
 

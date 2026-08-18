@@ -3,6 +3,7 @@ import api from '../api/axios';
 import { Lightbulb, AlertTriangle, TrendingUp, Target, CreditCard, CheckCircle2, XCircle } from 'lucide-react';
 
 const InsightsPage = () => {
+    const currencySymbol = localStorage.getItem('currency') || '₹';
     const [insights, setInsights] = useState([]);
     const [anomalies, setAnomalies] = useState([]);
     const [predictions, setPredictions] = useState([]);
@@ -89,7 +90,7 @@ const InsightsPage = () => {
                                         <span className="text-sm text-[var(--color-text-muted)]">{new Date(a.createdAt).toLocaleDateString()}</span>
                                     </div>
                                     <p className="text-sm font-medium text-[var(--color-text)] mt-2">{a.reason}</p>
-                                    <p className="text-xs text-[var(--color-text-muted)] mt-1">Expected Range: ₹{a.expectedRangeMin} - ₹{a.expectedRangeMax}</p>
+                                    <p className="text-xs text-[var(--color-text-muted)] mt-1">Expected Range: {currencySymbol}{a.expectedRangeMin} - {currencySymbol}{a.expectedRangeMax}</p>
                                 </div>
                                 <div className="flex gap-2 shrink-0">
                                     <button onClick={() => handleReviewAnomaly(a._id, 'reviewed')} className="flex items-center gap-1 text-xs px-3 py-1.5 bg-green-500/10 text-green-500 rounded-lg hover:bg-green-500/20"><CheckCircle2 className="w-3 h-3"/> Verify</button>
@@ -112,11 +113,11 @@ const InsightsPage = () => {
                             <div key={p._id} className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-4">
                                 <div className="flex justify-between items-start mb-2">
                                     <span className="text-sm font-medium text-[var(--color-text)]">{p.type === 'total_expense' ? 'Total Expenses' : p.categoryId?.name}</span>
-                                    <span className="text-sm font-bold text-purple-400">~₹{p.predictedAmount}</span>
+                                    <span className="text-sm font-bold text-purple-400">~{currencySymbol}{p.predictedAmount}</span>
                                 </div>
                                 <p className="text-xs text-[var(--color-text-muted)] mb-2">{p.explanation}</p>
                                 <div className="flex justify-between items-center text-[10px] uppercase tracking-wider text-[var(--color-text-secondary)] mt-3 pt-3 border-t border-[var(--color-border)]">
-                                    <span>Range: ₹{p.rangeMin} - ₹{p.rangeMax}</span>
+                                    <span>Range: {currencySymbol}{p.rangeMin} - {currencySymbol}{p.rangeMax}</span>
                                     <span>Confidence: {p.confidence}</span>
                                 </div>
                             </div>

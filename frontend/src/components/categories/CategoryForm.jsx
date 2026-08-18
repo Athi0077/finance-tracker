@@ -4,6 +4,7 @@ import * as LucideIcons from 'lucide-react';
 import { X } from 'lucide-react';
 
 const CategoryForm = ({ category, onSubmit, onClose }) => {
+  const currencySymbol = localStorage.getItem('currency') || '₹';
   const [name, setName] = useState(category?.name || '');
   const [monthlyBudget, setMonthlyBudget] = useState(category?.monthlyBudget || '');
   const [icon, setIcon] = useState(category?.icon || 'circle');
@@ -81,7 +82,7 @@ const CategoryForm = ({ category, onSubmit, onClose }) => {
           {/* Monthly Budget */}
           <div>
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-              Monthly Budget (₹)
+              Monthly Budget ({currencySymbol})
             </label>
             <input
               type="number"

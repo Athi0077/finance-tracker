@@ -50,6 +50,7 @@ app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/insights', require('./routes/insightRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/shared-wallets', require('./routes/sharedWalletRoutes'));
+app.use('/api/payments', require('./routes/paymentRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {

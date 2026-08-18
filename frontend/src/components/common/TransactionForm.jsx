@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Check, Camera, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { formatDateForInput } from '../../lib/utils';
 import { PAYMENT_METHODS } from '../../constants/paymentMethods';
 import { useTheme } from '../../context/ThemeContext';
@@ -8,6 +9,7 @@ import api from '../../api/axios';
 import toast from 'react-hot-toast';
 
 const TransactionForm = ({ transaction, categories, onSubmit, onClose, initialType = 'expense' }) => {
+  const currencySymbol = localStorage.getItem('currency') || '₹';
   const [amount, setAmount] = useState(transaction?.amount || '');
   const [type, setType] = useState(transaction?.type || initialType);
   const [categoryId, setCategoryId] = useState(transaction?.categoryId?._id || transaction?.categoryId || '');
@@ -127,8 +129,8 @@ const TransactionForm = ({ transaction, categories, onSubmit, onClose, initialTy
 
   const selectBg = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394A3B8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`;
 
-  return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4" style={overlayStyle}>
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={overlayStyle}>
       <div className="absolute inset-0" onClick={onClose} />
 
       <div
@@ -216,9 +218,9 @@ const TransactionForm = ({ transaction, categories, onSubmit, onClose, initialTy
             {/* Amount + Date */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
               <div>
-                <label style={labelStyle}>Amount (₹) <span className="text-orange-500">*</span></label>
+                <label style={labelStyle}>Amount ({currencySymbol}) <span className="text-orange-500">*</span></label>
                 <div className="relative">
-                  <span className="absolute left-[13px] top-1/2 -translate-y-1/2 text-[#64748B] font-semibold text-[16px]">₹</span>
+                  <span className="absolute left-[13px] top-1/2 -translate-y-1/2 text-[#64748B] font-semibold text-[16px]">{currencySymbol}</span>
                   <input
                     type="number"
                     value={amount}
@@ -366,7 +368,7 @@ const TransactionForm = ({ transaction, categories, onSubmit, onClose, initialTy
         </AnimatePresence>
       </div>
     </div>
-  );
+  , document.body);
 };
 
 export default TransactionForm;

@@ -238,6 +238,7 @@ const CustomizeModal = ({ layout, setLayout, onClose }) => {
 
 const DashboardPage = () => {
   const { user } = useAuth();
+  const currencySymbol = localStorage.getItem('currency') || '₹';
   const navigate = useNavigate();
   const [data, setData] = useState({ summary: null, health: null, insights: [], goals: [], subscriptions: [] });
   const [loading, setLoading] = useState(true);
@@ -416,7 +417,7 @@ const DashboardPage = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={summary.incomeVsExpense} barGap={4} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
                   <XAxis dataKey="month" tick={{ fill: '#94A3B8', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} dy={8} />
-                  <YAxis tick={{ fill: '#94A3B8', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
+                  <YAxis tick={{ fill: '#94A3B8', fontSize: 11, fontWeight: 600 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} />
                   <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)' }} />
                   <Bar dataKey="income" name="Income" radius={[4, 4, 0, 0]} maxBarSize={28}>
                     {summary.incomeVsExpense.map((entry, index) => (
