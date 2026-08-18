@@ -49,7 +49,7 @@ const GPayModal = ({ category, isOpen, onClose, onSuccess }) => {
       const referenceId = intentData.data.referenceId;
 
       // 2. Trigger GPay / UPI intent
-      const upiUrl = `upi://pay?pa=aathi@oksbi&pn=FinanceTracker&am=${numAmount}&cu=INR&tr=${referenceId}`;
+      const upiUrl = `upi://pay?pa=aathi6944@oksbi&pn=FinanceTracker&am=${numAmount}&cu=INR&tr=${referenceId}`;
       window.location.href = upiUrl;
       
       // Wait a few seconds to simulate the time taken to complete the payment
