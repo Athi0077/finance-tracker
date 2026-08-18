@@ -277,7 +277,8 @@ const CategoriesPage = () => {
                 <div className="mt-4 pt-4 border-t border-white/[0.04] relative z-10">
                   <button
                     onClick={() => {
-                      window.location.href = 'upi://pay?pa=aathi1234@oksbi&pn=FinanceTracker&cu=INR';
+                      // Open GPay home page using Android Intent
+                      window.location.href = 'intent://#Intent;package=com.google.android.apps.nbu.paisa.user;end';
                       setSelectedGPayCategory(cat);
                     }}
                     disabled={balance <= 0}
