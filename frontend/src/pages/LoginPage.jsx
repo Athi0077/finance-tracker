@@ -144,9 +144,9 @@ const LoginPage = () => {
         <div className="absolute w-[450px] h-[450px] bg-[#3B82F6]/5 rounded-full blur-[120px] pointer-events-none" />
 
         {/* Login card */}
-        <div className="relative z-10 w-full max-w-[430px] mx-4 flex flex-col justify-center">
+        <div className="relative z-10 w-full max-w-[480px] mx-4 flex flex-col justify-center">
 
-          <div className="rounded-[26px] border border-white/[0.10] bg-[#0B1022]/95 shadow-[0_25px_80px_rgba(0,0,0,0.45)] p-7 sm:p-8">
+          <div className="rounded-[26px] border border-white/[0.10] bg-[#0B1022]/95 shadow-[0_25px_80px_rgba(0,0,0,0.45)] p-8 sm:p-9 lg:p-10">
 
             {/* Header */}
             <div className="mb-8">
@@ -194,7 +194,7 @@ const LoginPage = () => {
                     style={{ paddingLeft: '48px' }}
                     className="
                       w-full
-                      h-[54px]
+                      h-[58px]
                       pr-4
                       rounded-xl
                       bg-[#080D1C]
@@ -249,7 +249,7 @@ const LoginPage = () => {
                     style={{ paddingLeft: '48px' }}
                     className="
                       w-full
-                      h-[54px]
+                      h-[58px]
                       pr-12
                       rounded-xl
                       bg-[#080D1C]
@@ -310,7 +310,7 @@ const LoginPage = () => {
                 className="
                   relative
                   w-full
-                  h-[54px]
+                  h-[58px]
                   mt-2
                   rounded-xl
                   overflow-hidden
