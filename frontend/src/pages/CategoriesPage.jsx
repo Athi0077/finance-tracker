@@ -4,8 +4,7 @@ import { formatCurrency, getBudgetStatus } from '../lib/utils';
 import BudgetProgress from '../components/common/BudgetProgress';
 import PageSkeleton from '../components/common/PageSkeleton';
 import CategoryForm from '../components/categories/CategoryForm';
-import GPayModal from '../components/categories/GPayModal';
-import GPaySuccessModal from '../components/categories/GPaySuccessModal';
+
 import { Plus, Pencil, Trash2, FolderOpen } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -18,9 +17,7 @@ const CategoriesPage = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  // GPay state
-  const [selectedGPayCategory, setSelectedGPayCategory] = useState(null);
-  const [paymentData, setPaymentData] = useState(null);
+
 
   useEffect(() => {
     fetchCategories();
@@ -70,51 +67,7 @@ const CategoriesPage = () => {
     }
   };
 
-  const handleGPaySuccess = (data) => {
-    setSelectedGPayCategory(null);
-    setPaymentData(data);
-  };
 
-  const handleAddGPayTransaction = async (data) => {
-    try {
-      const txData = {
-        amount: data.amount,
-        type: 'expense',
-        categoryId: data.categoryId,
-        description: 'Payment via GPay',
-        date: new Date().toISOString(),
-        paymentMethod: 'UPI'
-      };
-
-      const res = await api.post('/transactions', txData);
-      
-      // The backend returns updatedCategory in res.data.updatedCategory if it enriches it,
-      // but standard createTransaction in transactionController just returns:
-      // { success: true, data: result.transaction, updatedCategory: result.updatedCategory }
-      
-      const updatedCat = res.data.updatedCategory;
-      
-      if (updatedCat) {
-        setCategories(categories.map(c => c._id === updatedCat._id ? updatedCat : c));
-      } else {
-        // Fallback: manually update if updatedCategory is not returned
-        setCategories(categories.map(c => {
-          if (c._id === data.categoryId) {
-            return {
-              ...c,
-              spent: (c.spent || 0) + data.amount
-            };
-          }
-          return c;
-        }));
-      }
-
-      setPaymentData(null);
-      toast.success('Transaction added successfully!');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add transaction');
-    }
-  };
 
   const getIconComponent = (iconName) => {
     const formatted = iconName
@@ -273,20 +226,7 @@ const CategoriesPage = () => {
                   </span>
                 </div>
 
-                {/* GPay Button */}
-                <div className="mt-4 pt-4 border-t border-white/[0.04] relative z-10">
-                  <button
-                    onClick={() => {
-                      // Open GPay home page using Android Intent
-                      window.location.href = 'intent://#Intent;package=com.google.android.apps.nbu.paisa.user;end';
-                      setSelectedGPayCategory(cat);
-                    }}
-                    disabled={balance <= 0}
-                    className="w-full py-2.5 rounded-xl font-bold text-white bg-[#131B31] border border-white/[0.08] hover:bg-white/[0.05] hover:border-[#18C99A]/50 transition-all flex items-center justify-center gap-2 group/btn disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <span className="text-sm">{balance <= 0 ? 'Limit Reached' : 'Pay with GPay'}</span>
-                  </button>
-                </div>
+
               </div>
             );
           })}
@@ -345,23 +285,7 @@ const CategoriesPage = () => {
         </div>
       )}
 
-      {/* GPay Modals */}
-      <GPayModal
-        isOpen={!!selectedGPayCategory}
-        category={selectedGPayCategory}
-        onClose={() => setSelectedGPayCategory(null)}
-        onSuccess={handleGPaySuccess}
-      />
 
-      <GPaySuccessModal
-        isOpen={!!paymentData}
-        paymentData={paymentData}
-        onClose={() => {
-          setPaymentData(null);
-          toast('Payment not added to tracker', { icon: 'ℹ️' });
-        }}
-        onAddTransaction={handleAddGPayTransaction}
-      />
     </div>
   );
 };
