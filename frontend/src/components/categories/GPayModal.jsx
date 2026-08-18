@@ -48,8 +48,12 @@ const GPayModal = ({ category, isOpen, onClose, onSuccess }) => {
       
       const referenceId = intentData.data.referenceId;
 
-      // 2. Mock opening GPay and waiting for user
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // 2. Trigger GPay / UPI intent
+      const upiUrl = `upi://pay?pa=test@ybl&pn=FinanceTracker&am=${numAmount}&cu=INR&tr=${referenceId}`;
+      window.location.href = upiUrl;
+      
+      // Wait a few seconds to simulate the time taken to complete the payment
+      await new Promise(resolve => setTimeout(resolve, 3000));
 
       // 3. Verify payment
       const { data: verifyData } = await api.post('/payments/verify', {
