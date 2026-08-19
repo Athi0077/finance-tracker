@@ -15,6 +15,7 @@ import {
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import TransactionForm from '../components/common/TransactionForm';
 
 // ── Animated count-up hook ──────────────────────────────────────────────────
@@ -288,6 +289,8 @@ const DashboardPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [showCustomize, setShowCustomize] = useState(false);
   const [formType, setFormType] = useState('expense');
+  const [aiSummary, setAiSummary] = useState(null);
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
   const [layout, setLayout] = useState(() => {
     const saved = localStorage.getItem('dashboard_layout');
     return saved ? JSON.parse(saved) : DEFAULT_LAYOUT;
@@ -296,7 +299,34 @@ const DashboardPage = () => {
   useEffect(() => {
     fetchDashboardData();
     fetchCategories();
+    fetchAiSummary();
   }, []);
+
+  const fetchAiSummary = async () => {
+    try {
+      const currentMonthStr = new Date().toISOString().slice(0, 7);
+      const cachedData = localStorage.getItem('finance_ai_summary');
+      if (cachedData) {
+        const { month, summary } = JSON.parse(cachedData);
+        if (month === currentMonthStr) {
+          setAiSummary(summary);
+          return;
+        }
+      }
+
+      setAiSummaryLoading(true);
+      const { data } = await api.get('/ai/summary');
+      setAiSummary(data.data.summary);
+      localStorage.setItem('finance_ai_summary', JSON.stringify({
+        month: currentMonthStr,
+        summary: data.data.summary
+      }));
+    } catch (error) {
+      console.error('Failed to fetch AI summary', error);
+    } finally {
+      setAiSummaryLoading(false);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -588,27 +618,50 @@ const DashboardPage = () => {
         <motion.div variants={itemVariants} className="rounded-2xl p-5 lg:p-6 flex flex-col" style={baseCardStyle}>
           <h3 className="text-[16px] sm:text-[18px] font-bold text-white mb-5">Financial Insights</h3>
 
-          {insights.length > 0 ? (
-            <div className="space-y-3 flex-1">
-              {insights.map(insight => (
-                <div key={insight._id} className="flex gap-3 items-start p-3.5 rounded-[16px] bg-white/[0.02] border border-white/[0.03]">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-blue-500/10 border border-blue-500/20">
-                    <Lightbulb className="w-4 h-4 text-blue-400" />
-                  </div>
-                  <p className="text-[13px] font-medium leading-relaxed text-white/90">{insight.message}</p>
+          <div className="space-y-4 flex-1">
+            {aiSummaryLoading ? (
+              <div className="p-4 rounded-[16px] bg-white/[0.02] border border-white/[0.03] flex items-center justify-center animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-indigo-500/20" />
+                  <div className="h-4 bg-white/10 rounded w-40" />
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center flex-1 py-8">
-              <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3 border border-white/5">
-                <Lightbulb className="w-5 h-5" style={{ color: '#94A3B8' }} />
               </div>
-              <p className="text-[13px] font-medium text-center" style={{ color: '#94A3B8' }}>
-                Not enough data for insights yet.<br />Keep tracking!
-              </p>
-            </div>
-          )}
+            ) : aiSummary ? (
+              <div className="p-4 rounded-[16px] bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-pink-500/10 border border-indigo-500/20 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+                <div className="flex items-start gap-3 relative z-10">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-indigo-500/20 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.3)] group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-4 h-4 text-indigo-400" />
+                  </div>
+                  <div className="text-[13.5px] leading-relaxed text-indigo-50 font-medium [&>p]:mb-2 [&>h3]:font-bold [&>h3]:mt-3 [&>ul]:list-disc [&>ul]:pl-5 [&_strong]:text-white">
+                    <ReactMarkdown>{aiSummary}</ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {insights.length > 0 ? (
+              <div className="space-y-3">
+                {insights.map(insight => (
+                  <div key={insight._id} className="flex gap-3 items-start p-3.5 rounded-[16px] bg-white/[0.02] border border-white/[0.03]">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-blue-500/10 border border-blue-500/20">
+                      <Lightbulb className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <p className="text-[13px] font-medium leading-relaxed text-white/90">{insight.message}</p>
+                  </div>
+                ))}
+              </div>
+            ) : !aiSummaryLoading && !aiSummary ? (
+              <div className="flex flex-col items-center justify-center flex-1 py-8">
+                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3 border border-white/5">
+                  <Lightbulb className="w-5 h-5" style={{ color: '#94A3B8' }} />
+                </div>
+                <p className="text-[13px] font-medium text-center" style={{ color: '#94A3B8' }}>
+                  Not enough data for insights yet.<br />Keep tracking!
+                </p>
+              </div>
+            ) : null}
+          </div>
         </motion.div>
       </div>
           );

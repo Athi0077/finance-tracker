@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import api from '../api/axios';
 import { Lightbulb, AlertTriangle, TrendingUp, Target, CreditCard, CheckCircle2, XCircle, Sparkles } from 'lucide-react';
 
@@ -103,8 +104,8 @@ const InsightsPage = () => {
                             <span className="text-sm font-medium">Generating your personalized AI insight...</span>
                         </div>
                     ) : aiSummary ? (
-                        <div className="text-sm leading-relaxed text-[var(--color-text)] whitespace-pre-wrap">
-                            {aiSummary}
+                        <div className="text-sm leading-relaxed text-[var(--color-text)] [&>p]:mb-2 [&>h3]:font-bold [&>h3]:mt-3 [&>ul]:list-disc [&>ul]:pl-5 [&_strong]:text-indigo-400">
+                            <ReactMarkdown>{aiSummary}</ReactMarkdown>
                         </div>
                     ) : (
                         <p className="text-sm text-[var(--color-text-muted)]">Could not generate AI summary at this time.</p>
