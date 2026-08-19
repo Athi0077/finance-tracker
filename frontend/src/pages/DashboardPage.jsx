@@ -307,20 +307,23 @@ const DashboardPage = () => {
       const currentMonthStr = new Date().toISOString().slice(0, 7);
       const cachedData = localStorage.getItem('finance_ai_summary');
       if (cachedData) {
-        const { month, summary } = JSON.parse(cachedData);
-        if (month === currentMonthStr) {
-          setAiSummary(summary);
+        const parsed = JSON.parse(cachedData);
+        if (parsed.month === currentMonthStr && (parsed.data || parsed.summary)) {
+          setAiSummary(parsed.data || parsed.summary);
           return;
         }
       }
 
       setAiSummaryLoading(true);
-      const { data } = await api.get('/ai/summary');
-      setAiSummary(data.data.summary);
-      localStorage.setItem('finance_ai_summary', JSON.stringify({
-        month: currentMonthStr,
-        summary: data.data.summary
-      }));
+      const { data } = await api.post('/ai/summary');
+      const newSummary = data?.data;
+      if (newSummary) {
+        setAiSummary(newSummary);
+        localStorage.setItem('finance_ai_summary', JSON.stringify({
+          month: currentMonthStr,
+          data: newSummary
+        }));
+      }
     } catch (error) {
       console.error('Failed to fetch AI summary', error);
     } finally {
