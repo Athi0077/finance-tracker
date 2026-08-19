@@ -59,10 +59,52 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
 };
 
-const getMockSparkline = (trend) => {
-  if (trend > 0) return [{ v: 20 }, { v: 30 }, { v: 25 }, { v: 45 }, { v: 60 }];
-  if (trend < 0) return [{ v: 60 }, { v: 45 }, { v: 50 }, { v: 30 }, { v: 20 }];
-  return [{ v: 30 }, { v: 40 }, { v: 35 }, { v: 45 }, { v: 50 }];
+const calculateTrends = (summary) => {
+  if (!summary || !summary.incomeVsExpense || summary.incomeVsExpense.length < 2) {
+    return {
+      income: { trend: 0, sparkline: [] },
+      expense: { trend: 0, sparkline: [] },
+      savings: { trend: 0, sparkline: [] },
+      balance: { trend: 0, sparkline: [] }
+    };
+  }
+
+  const data = summary.incomeVsExpense;
+  const current = data[data.length - 1];
+  const previous = data[data.length - 2];
+
+  const calcTrend = (curr, prev) => {
+    if (prev === 0) return curr > 0 ? 100 : 0;
+    return ((curr - prev) / Math.abs(prev)) * 100;
+  };
+
+  const incomeTrend = calcTrend(current.income, previous.income);
+  const expenseTrend = calcTrend(current.expense, previous.expense);
+  const currentSavings = current.income - current.expense;
+  const prevSavings = previous.income - previous.expense;
+  const savingsTrend = calcTrend(currentSavings, prevSavings);
+
+  const historicalBalances = [];
+  let currentBal = summary.totalBalance;
+  for (let i = data.length - 1; i >= 0; i--) {
+    historicalBalances.unshift({ v: currentBal });
+    const monthSavings = data[i].income - data[i].expense;
+    currentBal -= monthSavings;
+  }
+  const prevBalance = historicalBalances.length > 1 ? historicalBalances[historicalBalances.length - 2].v : 0;
+  const balanceTrend = calcTrend(summary.totalBalance, prevBalance);
+
+  return {
+    income: { trend: incomeTrend, sparkline: data.map(d => ({ v: d.income })) },
+    expense: { trend: expenseTrend, sparkline: data.map(d => ({ v: d.expense })) },
+    savings: { trend: savingsTrend, sparkline: data.map(d => ({ v: d.income - d.expense })) },
+    balance: { trend: balanceTrend, sparkline: historicalBalances }
+  };
+};
+
+const formatTrendLabel = (val) => {
+  if (val > 0) return `+${val.toFixed(1)}%`;
+  return `${val.toFixed(1)}%`;
 };
 
 const baseCardStyle = {
@@ -325,6 +367,7 @@ const DashboardPage = () => {
   if (!data.summary) return <p style={{ color: 'var(--color-text-secondary)' }}>Failed to load dashboard data.</p>;
 
   const { summary, health, insights } = data;
+  const trendsData = calculateTrends(summary);
 
   return (
     <motion.div
@@ -366,10 +409,10 @@ const DashboardPage = () => {
         if (section.id === 'summary') {
           return (
             <div key="summary" className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 w-full min-w-0">
-              <StatCard title="Total Balance" value={summary.totalBalance} icon={Wallet} color="var(--color-blue)" trend={5.2} trendLabel="+5.2%" sparklineData={getMockSparkline(5.2)} />
-              <StatCard title="Income" value={summary.monthlyIncome} icon={TrendingUp} color="var(--color-success)" trend={8.1} trendLabel="+8.1%" onClick={() => { setFormType('income'); setShowForm(true); }} sparklineData={getMockSparkline(8.1)} />
-              <StatCard title="Expenses" value={summary.monthlyExpenses} icon={TrendingDown} color="var(--color-danger)" trend={-2.4} trendLabel="-2.4%" onClick={() => { setFormType('expense'); setShowForm(true); }} sparklineData={getMockSparkline(-2.4)} />
-              <StatCard title="Savings" value={summary.monthlySavings} icon={PiggyBank} color="var(--color-primary)" trend={12.5} trendLabel="+12.5%" sparklineData={getMockSparkline(12.5)} />
+              <StatCard title="Total Balance" value={summary.totalBalance} icon={Wallet} color="var(--color-blue)" trend={trendsData.balance.trend} trendLabel={formatTrendLabel(trendsData.balance.trend)} sparklineData={trendsData.balance.sparkline} />
+              <StatCard title="Income" value={summary.monthlyIncome} icon={TrendingUp} color="var(--color-success)" trend={trendsData.income.trend} trendLabel={formatTrendLabel(trendsData.income.trend)} onClick={() => { setFormType('income'); setShowForm(true); }} sparklineData={trendsData.income.sparkline} />
+              <StatCard title="Expenses" value={summary.monthlyExpenses} icon={TrendingDown} color="var(--color-danger)" trend={trendsData.expense.trend} trendLabel={formatTrendLabel(trendsData.expense.trend)} onClick={() => { setFormType('expense'); setShowForm(true); }} sparklineData={trendsData.expense.sparkline} />
+              <StatCard title="Savings" value={summary.monthlySavings} icon={PiggyBank} color="var(--color-primary)" trend={trendsData.savings.trend} trendLabel={formatTrendLabel(trendsData.savings.trend)} sparklineData={trendsData.savings.sparkline} />
             </div>
           );
         }
