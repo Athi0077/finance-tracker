@@ -7,7 +7,7 @@ import {
   Wallet, TrendingUp, TrendingDown, PiggyBank,
   ArrowUpRight, ArrowDownRight, Target, CreditCard,
   Lightbulb, AlertCircle, Plus, ChevronRight,
-  Settings2, GripVertical, Eye, EyeOff, X
+  Settings2, GripVertical, Eye, EyeOff, X, Sparkles
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line
@@ -547,6 +547,21 @@ const DashboardPage = () => {
           onClose={() => setShowCustomize(false)}
         />
       )}
+
+      {/* Sticky AI Advisor Button */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => navigate('/ai-advisor')}
+        className="fixed bottom-6 right-6 lg:bottom-8 lg:right-8 z-50 p-4 rounded-full flex items-center justify-center shadow-lg group overflow-hidden"
+        style={{ 
+          background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))',
+          boxShadow: '0 8px 24px rgba(99, 102, 241, 0.4)'
+        }}
+      >
+        <div className="absolute inset-0 bg-white/20 group-hover:bg-transparent transition-colors duration-300" />
+        <Sparkles className="w-6 h-6 text-white relative z-10" />
+      </motion.button>
     </motion.div>
   );
 };
