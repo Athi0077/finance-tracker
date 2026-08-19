@@ -476,7 +476,7 @@ const TransactionsPage = () => {
                     {tx.type === 'income' ? <ArrowUpRight className="w-5.5 h-5.5" /> : <ArrowDownRight className="w-5.5 h-5.5" />}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[15px] font-bold text-[#F8FAFC] truncate">
+                    <p className="text-[15px] font-bold text-[#F8FAFC] break-words whitespace-normal">
                       {tx.description}
                     </p>
                     

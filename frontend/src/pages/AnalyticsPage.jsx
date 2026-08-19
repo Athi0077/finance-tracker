@@ -7,6 +7,7 @@ import {
 import { formatCurrency } from '../lib/utils';
 import { Loader2, TrendingUp, TrendingDown, Target, Wallet } from 'lucide-react';
 import PageSkeleton from '../components/common/PageSkeleton';
+import DateRangePicker from '../components/common/DateRangePicker';
 
 const COLORS = ['#3B82F6', '#10B981', '#F97316', '#8B5CF6', '#EC4899', '#06B6D4', '#EAB308'];
 
@@ -110,12 +111,16 @@ const AnalyticsPage = () => {
   const [data, setData] = useState(null);
   const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('This Month');
+  const [dateRange, setDateRange] = useState({ start: null, end: null });
 
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const res = await api.get(`/analytics?filter=${filter}`);
+      let url = '/analytics?filter=This Month';
+      if (dateRange.start && dateRange.end) {
+        url = `/analytics?filter=Custom Range&customStart=${dateRange.start.toISOString()}&customEnd=${dateRange.end.toISOString()}`;
+      }
+      const res = await api.get(url);
       setData(res.data?.data || {});
       const healthRes = await api.get('/analytics/health');
       setHealth(healthRes.data.data);
@@ -128,7 +133,7 @@ const AnalyticsPage = () => {
 
   useEffect(() => {
     fetchAnalytics();
-  }, [filter]);
+  }, [dateRange]);
 
   if (loading && !data) {
     return <PageSkeleton />;
@@ -144,19 +149,13 @@ const AnalyticsPage = () => {
           <p className="text-[13px] sm:text-[14px]" style={{ color: '#94A3B8' }}>Deep dive into your financial health</p>
         </div>
 
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="appearance-none cursor-pointer rounded-[12px] px-4 py-2.5 text-[13px] font-bold text-white transition-colors focus:ring-2 focus:ring-[var(--color-primary)] focus:outline-none outline-none"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-        >
-          <option className="bg-[#0B1733]">7 Days</option>
-          <option className="bg-[#0B1733]">This Month</option>
-          <option className="bg-[#0B1733]">Last Month</option>
-          <option className="bg-[#0B1733]">3 Months</option>
-          <option className="bg-[#0B1733]">6 Months</option>
-          <option className="bg-[#0B1733]">1 Year</option>
-        </select>
+        <div className="relative z-50">
+          <DateRangePicker 
+            value={dateRange}
+            onChange={(range) => setDateRange({ start: range.startDate, end: range.endDate })}
+            placeholder="Select date range"
+          />
+        </div>
       </div>
 
       {health && (

@@ -1,6 +1,7 @@
 const SharedWallet = require('../models/SharedWallet');
 const SplitBill = require('../models/SplitBill');
 const User = require('../models/User');
+const Transaction = require('../models/Transaction');
 
 const createWallet = async (req, res, next) => {
   try {
@@ -137,6 +138,18 @@ const addBill = async (req, res, next) => {
       description,
       splits
     });
+
+    // Create an expense transaction for each member for their share
+    const transactionsToCreate = wallet.members.map(memberId => ({
+      userId: memberId,
+      amount: splitAmount,
+      type: 'expense',
+      description: `Shared: ${description} (${wallet.name})`,
+      date: new Date(),
+      paymentMethod: 'Other'
+    }));
+
+    await Transaction.insertMany(transactionsToCreate);
 
     res.status(201).json({ success: true, data: bill });
   } catch (error) {

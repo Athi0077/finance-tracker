@@ -75,14 +75,14 @@ ${JSON.stringify(context, null, 2)}
  * Generates an intelligent monthly summary
  */
 const generateMonthlySummary = async (context) => {
-    const systemInstruction = `You are an AI generating a structured financial summary. Keep it brief, professional, and easy to read.`;
+    const systemInstruction = `You are an AI generating a structured financial summary and prediction. Keep it brief, professional, and easy to read.`;
     const prompt = `
-Analyze the following financial context and generate a short, intelligent monthly summary.
+Analyze the following financial context and generate a short, intelligent monthly summary and prediction.
 Include:
 - High level income, expense, and savings rate.
-- Highlight the highest spending category.
-- Mention any overspending compared to budget.
+- Highlight the highest spending category and any overspending compared to budget.
 - Compare with last month if relevant.
+- Predict their expense and spending pattern for the upcoming month based on this data.
 - Provide one actionable positive note and one recommendation for improvement.
 
 Context:

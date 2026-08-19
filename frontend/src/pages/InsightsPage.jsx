@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { Lightbulb, AlertTriangle, TrendingUp, Target, CreditCard, CheckCircle2, XCircle } from 'lucide-react';
+import { Lightbulb, AlertTriangle, TrendingUp, Target, CreditCard, CheckCircle2, XCircle, Sparkles } from 'lucide-react';
 
 const InsightsPage = () => {
     const currencySymbol = localStorage.getItem('currency') || '₹';
@@ -9,8 +9,44 @@ const InsightsPage = () => {
     const [predictions, setPredictions] = useState([]);
     const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [aiSummary, setAiSummary] = useState(null);
+    const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
 
     useEffect(() => {
+        const loadAiSummary = async () => {
+            const currentMonth = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+            const stored = localStorage.getItem('finance_ai_summary');
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (parsed.month === currentMonth) {
+                        setAiSummary(parsed.data);
+                        return; // Valid cached data for this month
+                    }
+                } catch (e) {
+                    console.error("Failed to parse cached ai summary");
+                }
+            }
+
+            // Fetch new summary
+            setAiSummaryLoading(true);
+            try {
+                const res = await api.post('/ai/summary');
+                const newSummary = res.data?.data;
+                if (newSummary) {
+                    setAiSummary(newSummary);
+                    localStorage.setItem('finance_ai_summary', JSON.stringify({
+                        month: currentMonth,
+                        data: newSummary
+                    }));
+                }
+            } catch (e) {
+                console.error("Failed to fetch ai summary", e);
+            } finally {
+                setAiSummaryLoading(false);
+            }
+        };
+
         const fetchAll = async () => {
             try {
                 const [iRes, aRes, pRes, rRes] = await Promise.all([
@@ -36,6 +72,7 @@ const InsightsPage = () => {
             }
         };
         fetchAll();
+        loadAiSummary();
     }, []);
 
     const handleReviewAnomaly = async (id, status) => {
@@ -53,6 +90,27 @@ const InsightsPage = () => {
                 <h1 className="text-2xl font-bold text-[var(--color-text)]">Insight Center</h1>
                 <p className="text-[var(--color-text-muted)] mt-1">AI-powered analysis of your financial health</p>
             </div>
+
+            {/* AI Summary / Prediction Section */}
+            <section className="mb-8">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-[var(--color-text)]">
+                    <Sparkles className="w-5 h-5 text-indigo-400" /> AI Financial Summary & Prediction
+                </h2>
+                <div className="bg-[var(--color-surface)] border border-indigo-500/30 rounded-2xl p-5 sm:p-6 shadow-[0_4px_20px_rgba(99,102,241,0.05)]">
+                    {aiSummaryLoading ? (
+                        <div className="flex items-center gap-3 text-indigo-400">
+                            <div className="w-5 h-5 rounded-full border-2 border-indigo-400 border-t-transparent animate-spin"></div>
+                            <span className="text-sm font-medium">Generating your personalized AI insight...</span>
+                        </div>
+                    ) : aiSummary ? (
+                        <div className="text-sm leading-relaxed text-[var(--color-text)] whitespace-pre-wrap">
+                            {aiSummary}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-[var(--color-text-muted)]">Could not generate AI summary at this time.</p>
+                    )}
+                </div>
+            </section>
 
             {/* Recommendations Section */}
             {recommendations.length > 0 && (
