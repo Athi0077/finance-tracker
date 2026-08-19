@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { formatCurrency, getGreeting } from '../lib/utils';
+import { formatCurrency, getGreeting, formatDate } from '../lib/utils';
 import DashboardSkeleton from '../components/common/DashboardSkeleton';
 import {
   Wallet, TrendingUp, TrendingDown, PiggyBank,
@@ -497,7 +497,7 @@ const DashboardPage = () => {
 
         if (section.id === 'insights') {
           return (
-            <div key="insights" className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-5 lg:gap-6 w-full min-w-0">
+            <div key="insights" className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6 w-full min-w-0">
         {/* Categories Card */}
         <motion.div variants={itemVariants} className="rounded-2xl p-5 lg:p-6 flex flex-col" style={baseCardStyle}>
           <div className="flex items-center justify-between mb-5">
@@ -537,6 +537,50 @@ const DashboardPage = () => {
             </div>
           ) : (
             <p className="text-[13px] py-4 text-center" style={{ color: '#94A3B8' }}>No categories yet</p>
+          )}
+        </motion.div>
+
+        {/* Recent Transactions Card */}
+        <motion.div variants={itemVariants} className="rounded-2xl p-5 lg:p-6 flex flex-col" style={baseCardStyle}>
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-[16px] sm:text-[18px] font-bold text-white">Recent Transactions</h3>
+            <button onClick={() => navigate('/transactions')} className="flex items-center gap-1 text-[13px] font-bold transition-colors hover:text-white" style={{ color: 'var(--color-blue)' }}>
+              View All <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {summary.recentTransactions?.length > 0 ? (
+            <div className="space-y-4">
+              {summary.recentTransactions.map((tx) => (
+                <div key={tx._id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
+                      style={{
+                        background: tx.type === 'income' ? '#18C99A12' : '#EF444412',
+                        borderColor: tx.type === 'income' ? '#18C99A25' : '#EF444425',
+                        color: tx.type === 'income' ? '#18C99A' : '#EF4444',
+                      }}>
+                      {tx.type === 'income' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[14px] font-bold text-white truncate">{tx.description}</p>
+                      <p className="text-[12px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                        {formatDate(tx.date)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0 ml-2">
+                    <span className="text-[14px] font-bold" style={{ color: tx.type === 'income' ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                      {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+             <div className="flex flex-col items-center justify-center flex-1 py-8">
+               <p className="text-[13px] text-center" style={{ color: '#94A3B8' }}>No recent transactions</p>
+             </div>
           )}
         </motion.div>
 

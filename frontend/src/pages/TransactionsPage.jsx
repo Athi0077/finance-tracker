@@ -451,11 +451,11 @@ const TransactionsPage = () => {
         className="rounded-2xl border border-white/[0.08] bg-[#0B1022] shadow-[0_25px_80px_rgba(0,0,0,0.45)] p-4 relative overflow-hidden"
       >
         <div className="absolute inset-0 opacity-10 bg-gradient-to-br from-transparent to-[var(--color-surface)] pointer-events-none"></div>
-        <div className="relative z-10">
+        <div className="relative z-10 overflow-x-auto pb-2">
         {loading ? (
           <TableSkeleton />
         ) : transactions.length > 0 ? (
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-[500px]">
             {transactions.map((tx, i) => (
               <div
                 key={tx._id}
