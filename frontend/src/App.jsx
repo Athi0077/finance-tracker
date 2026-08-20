@@ -16,11 +16,13 @@ import SubscriptionsPage from './pages/SubscriptionsPage';
 import AIAdvisorPage from './pages/AIAdvisorPage';
 import InsightsPage from './pages/InsightsPage';
 import SharedWalletsPage from './pages/SharedWalletsPage';
+import ClickSpark from './components/common/ClickSpark';
 
 function App() {
   return (
     <ThemeProvider>
     <AuthProvider>
+    <ClickSpark />
       <BrowserRouter>
         <Routes>
           {/* Public routes */}

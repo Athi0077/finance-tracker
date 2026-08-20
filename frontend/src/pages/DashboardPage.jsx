@@ -17,7 +17,6 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import TransactionForm from '../components/common/TransactionForm';
-
 // ── Animated count-up hook ──────────────────────────────────────────────────
 const useCountUp = (target, duration = 800) => {
   const [display, setDisplay] = useState(target);
