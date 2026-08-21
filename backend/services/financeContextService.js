@@ -55,9 +55,9 @@ const getFinancialContext = async (userId) => {
   // Categories with budgets
   const categoryContext = categories.map(cat => ({
     name: cat.name,
-    budget: cat.budget || 0,
+    budget: cat.monthlyBudget || 0,
     spent: currentCategorySpending[cat.name] || 0,
-    remaining: (cat.budget || 0) - (currentCategorySpending[cat.name] || 0)
+    remaining: (cat.monthlyBudget || 0) - (currentCategorySpending[cat.name] || 0)
   }));
 
   // Goals
