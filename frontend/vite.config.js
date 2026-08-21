@@ -14,7 +14,7 @@ export default defineConfig({
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
-      includeAssets: ['favicon.svg', 'icons.svg'],
+      includeAssets: ['logo1.png', 'icons.svg'],
       manifest: {
         name: 'FinanceFlow Tracker',
         short_name: 'FinanceFlow',
@@ -24,9 +24,9 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: 'favicon.svg',
+            src: 'logo1.png',
             sizes: '192x192 512x512',
-            type: 'image/svg+xml',
+            type: 'image/png',
             purpose: 'any maskable'
           }
         ]
