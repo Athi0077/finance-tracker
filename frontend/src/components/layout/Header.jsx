@@ -5,6 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { getGreeting } from '../../lib/utils';
 import NotificationBell from '../common/NotificationBell';
+import logoImg from '../../assets/logo1.png';
 
 const Header = ({ onMenuClick, title }) => {
   const { user, logout } = useAuth();
@@ -40,14 +41,21 @@ const Header = ({ onMenuClick, title }) => {
       }}
     >
       {/* Left side */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <button
           onClick={onMenuClick}
           className="lg:hidden p-1.5 rounded-lg hover:bg-white/5 transition-colors"
         >
           <Menu className="w-5 h-5" style={{ color: 'var(--color-text-secondary)' }} />
         </button>
-        <div className="flex flex-col justify-center">
+        
+        <img 
+          src={logoImg} 
+          alt="FinanceFlow Logo" 
+          className="lg:hidden w-6 h-6 object-contain" 
+        />
+        
+        <div className="flex flex-col justify-center ml-1 lg:ml-0">
           <h1 className="text-[18px] lg:text-[20px] font-bold leading-tight tracking-wide" style={{ color: 'var(--color-text)' }}>
             {title}
           </h1>
