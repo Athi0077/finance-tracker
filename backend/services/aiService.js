@@ -78,14 +78,55 @@ ${JSON.stringify(context, null, 2)}
           parameters: {
             type: "object",
             properties: {
-              name: {
-                type: "string",
-                description: "The name of the category to create, e.g. Shopping, Groceries."
-              },
-              monthlyBudget: {
-                type: "number",
-                description: "The monthly budget limit for the category in the user's currency. Default is 0 if not specified."
-              }
+              name: { type: "string", description: "The name of the category to create, e.g. Shopping, Groceries." },
+              monthlyBudget: { type: "number", description: "The monthly budget limit for the category in the user's currency. Default is 0 if not specified." }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "create_goal",
+          description: "Create a new financial savings goal.",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Name of the goal, e.g. New Car, Vacation." },
+              targetAmount: { type: "number", description: "The target amount to save." },
+              targetDate: { type: "string", description: "Target date to achieve the goal in YYYY-MM-DD format." }
+            },
+            required: ["name", "targetAmount", "targetDate"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "create_subscription",
+          description: "Create a new recurring subscription.",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Name of the subscription, e.g. Netflix, Gym." },
+              amount: { type: "number", description: "The recurring billing amount." },
+              billingCycle: { type: "string", enum: ["Monthly", "Yearly", "Weekly"], description: "The billing cycle frequency." },
+              categoryName: { type: "string", description: "The category name this subscription belongs to." }
+            },
+            required: ["name", "amount", "billingCycle"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "create_shared_wallet",
+          description: "Create a new shared wallet.",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { type: "string", description: "Name of the shared wallet, e.g. Family Trip, Couple Expenses." }
             },
             required: ["name"]
           }
@@ -101,34 +142,71 @@ ${JSON.stringify(context, null, 2)}
             messages.push(responseMsg); // Append assistant's tool call message
 
             for (const toolCall of responseMsg.tool_calls) {
-                if (toolCall.function.name === 'create_category') {
-                    try {
-                        const args = JSON.parse(toolCall.function.arguments);
-                        
-                        // Check if category already exists
+                try {
+                    const args = JSON.parse(toolCall.function.arguments);
+                    let successMsg = "";
+                    
+                    if (toolCall.function.name === 'create_category') {
                         let cat = await Category.findOne({ userId, name: { $regex: new RegExp(`^${args.name}$`, 'i') } });
                         if (!cat) {
                             cat = await Category.create({
-                                userId,
-                                name: args.name,
-                                monthlyBudget: args.monthlyBudget || 0,
-                                icon: 'circle', // Default icon
-                                color: '#6366f1' // Default color
+                                userId, name: args.name, monthlyBudget: args.monthlyBudget || 0, icon: 'circle', color: '#6366f1'
                             });
                         }
-
-                        messages.push({
-                            role: "tool",
-                            tool_call_id: toolCall.id,
-                            content: JSON.stringify({ success: true, message: `Category '${args.name}' created successfully with budget ${args.monthlyBudget || 0}.` })
-                        });
-                    } catch (err) {
-                        messages.push({
-                            role: "tool",
-                            tool_call_id: toolCall.id,
-                            content: JSON.stringify({ success: false, message: `Failed to create category: ${err.message}` })
-                        });
+                        successMsg = `Category '${args.name}' created successfully.`;
                     }
+                    else if (toolCall.function.name === 'create_goal') {
+                        const Goal = require('../models/Goal');
+                        await Goal.create({
+                            userId, name: args.name, targetAmount: args.targetAmount, targetDate: new Date(args.targetDate)
+                        });
+                        successMsg = `Goal '${args.name}' created successfully.`;
+                    }
+                    else if (toolCall.function.name === 'create_subscription') {
+                        const Subscription = require('../models/Subscription');
+                        let catId;
+                        if (args.categoryName) {
+                            let cat = await Category.findOne({ userId, name: { $regex: new RegExp(`^${args.categoryName}$`, 'i') } });
+                            if (!cat) {
+                                cat = await Category.create({ userId, name: args.categoryName, monthlyBudget: 0 });
+                            }
+                            catId = cat._id;
+                        } else {
+                            // Find or create 'Other'
+                            let cat = await Category.findOne({ userId, name: 'Other' });
+                            if (!cat) cat = await Category.create({ userId, name: 'Other', monthlyBudget: 0 });
+                            catId = cat._id;
+                        }
+                        
+                        // Default next billing date to next month
+                        const nextDate = new Date();
+                        nextDate.setMonth(nextDate.getMonth() + 1);
+
+                        await Subscription.create({
+                            userId, name: args.name, amount: args.amount, billingCycle: args.billingCycle,
+                            categoryId: catId, nextBillingDate: nextDate
+                        });
+                        successMsg = `Subscription '${args.name}' created successfully.`;
+                    }
+                    else if (toolCall.function.name === 'create_shared_wallet') {
+                        const SharedWallet = require('../models/SharedWallet');
+                        await SharedWallet.create({
+                            name: args.name, createdBy: userId, members: [userId]
+                        });
+                        successMsg = `Shared wallet '${args.name}' created successfully.`;
+                    }
+
+                    messages.push({
+                        role: "tool",
+                        tool_call_id: toolCall.id,
+                        content: JSON.stringify({ success: true, message: successMsg })
+                    });
+                } catch (err) {
+                    messages.push({
+                        role: "tool",
+                        tool_call_id: toolCall.id,
+                        content: JSON.stringify({ success: false, message: `Failed to execute ${toolCall.function.name}: ${err.message}` })
+                    });
                 }
             }
 
