@@ -131,6 +131,22 @@ ${JSON.stringify(context, null, 2)}
             required: ["name"]
           }
         }
+      },
+      {
+        type: "function",
+        function: {
+          name: "add_shared_expense",
+          description: "Add a new shared expense (split bill) to an existing shared wallet.",
+          parameters: {
+            type: "object",
+            properties: {
+              walletName: { type: "string", description: "The name of the shared wallet to add the expense to." },
+              amount: { type: "number", description: "The total amount of the expense." },
+              description: { type: "string", description: "Description of the expense, e.g. Dinner, Hotel." }
+            },
+            required: ["walletName", "amount", "description"]
+          }
+        }
       }
     ];
 
@@ -194,6 +210,44 @@ ${JSON.stringify(context, null, 2)}
                             name: args.name, createdBy: userId, members: [userId]
                         });
                         successMsg = `Shared wallet '${args.name}' created successfully.`;
+                    }
+                    else if (toolCall.function.name === 'add_shared_expense') {
+                        const SharedWallet = require('../models/SharedWallet');
+                        const SplitBill = require('../models/SplitBill');
+                        const Transaction = require('../models/Transaction');
+
+                        const wallet = await SharedWallet.findOne({ name: { $regex: new RegExp(`^${args.walletName}$`, 'i') }, members: userId });
+                        if (!wallet) {
+                            throw new Error(`Wallet '${args.walletName}' not found or you are not a member.`);
+                        }
+
+                        // Equal split calculation
+                        const splitAmount = args.amount / wallet.members.length;
+                        const splits = wallet.members.map(memberId => ({
+                            user: memberId,
+                            amountOwed: splitAmount
+                        }));
+
+                        await SplitBill.create({
+                            walletId: wallet._id,
+                            paidBy: userId,
+                            amount: args.amount,
+                            description: args.description,
+                            splits
+                        });
+
+                        // Create transaction for each member
+                        const transactionsToCreate = wallet.members.map(memberId => ({
+                            userId: memberId,
+                            amount: splitAmount,
+                            type: 'expense',
+                            description: `Shared: ${args.description} (${wallet.name})`,
+                            date: new Date(),
+                            paymentMethod: 'Other'
+                        }));
+                        await Transaction.insertMany(transactionsToCreate);
+
+                        successMsg = `Added expense of ${args.amount} to '${wallet.name}'. It was split equally, adding ${splitAmount} to members' expenses.`;
                     }
 
                     messages.push({
