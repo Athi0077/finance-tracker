@@ -572,27 +572,27 @@ const DashboardPage = () => {
           )}
         </motion.div>
 
-        {/* Recent Transactions Card */}
+        {/* Recent Income Card */}
         <motion.div variants={itemVariants} className="rounded-2xl p-5 lg:p-6 flex flex-col" style={baseCardStyle}>
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-[16px] sm:text-[18px] font-bold text-white">Recent Transactions</h3>
+            <h3 className="text-[16px] sm:text-[18px] font-bold text-white">Recent Income</h3>
             <button onClick={() => navigate('/transactions')} className="flex items-center gap-1 text-[13px] font-bold transition-colors hover:text-white" style={{ color: 'var(--color-blue)' }}>
               View All <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          {summary.recentTransactions?.length > 0 ? (
+          {summary.recentIncome?.length > 0 ? (
             <div className="space-y-4">
-              {summary.recentTransactions.map((tx) => (
+              {summary.recentIncome.map((tx) => (
                 <div key={tx._id} className="flex items-center justify-between">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
                       style={{
-                        background: tx.type === 'income' ? '#18C99A12' : '#EF444412',
-                        borderColor: tx.type === 'income' ? '#18C99A25' : '#EF444425',
-                        color: tx.type === 'income' ? '#18C99A' : '#EF4444',
+                        background: '#18C99A12',
+                        borderColor: '#18C99A25',
+                        color: '#18C99A',
                       }}>
-                      {tx.type === 'income' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                      <ArrowUpRight className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
                       <p className="text-[14px] font-bold text-white truncate">{tx.description}</p>
@@ -602,8 +602,8 @@ const DashboardPage = () => {
                     </div>
                   </div>
                   <div className="text-right shrink-0 ml-2">
-                    <span className="text-[14px] font-bold" style={{ color: tx.type === 'income' ? 'var(--color-success)' : 'var(--color-danger)' }}>
-                      {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                    <span className="text-[14px] font-bold" style={{ color: 'var(--color-success)' }}>
+                      +{formatCurrency(tx.amount)}
                     </span>
                   </div>
                 </div>
@@ -611,59 +611,53 @@ const DashboardPage = () => {
             </div>
           ) : (
              <div className="flex flex-col items-center justify-center flex-1 py-8">
-               <p className="text-[13px] text-center" style={{ color: '#94A3B8' }}>No recent transactions</p>
+               <p className="text-[13px] text-center" style={{ color: '#94A3B8' }}>No recent income</p>
              </div>
           )}
         </motion.div>
 
-        {/* Insights Card */}
+        {/* Recent Expenses Card */}
         <motion.div variants={itemVariants} className="rounded-2xl p-5 lg:p-6 flex flex-col" style={baseCardStyle}>
-          <h3 className="text-[16px] sm:text-[18px] font-bold text-white mb-5">Financial Insights</h3>
-
-          <div className="space-y-4 flex-1">
-            {aiSummaryLoading ? (
-              <div className="p-4 rounded-[16px] bg-white/[0.02] border border-white/[0.03] flex items-center justify-center animate-pulse">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-indigo-500/20" />
-                  <div className="h-4 bg-white/10 rounded w-40" />
-                </div>
-              </div>
-            ) : aiSummary ? (
-              <div className="p-4 rounded-[16px] bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-pink-500/10 border border-indigo-500/20 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-                <div className="flex items-start gap-3 relative z-10">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-indigo-500/20 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.3)] group-hover:scale-110 transition-transform">
-                    <Sparkles className="w-4 h-4 text-indigo-400" />
-                  </div>
-                  <div className="text-[13.5px] leading-relaxed text-indigo-50 font-medium [&>p]:mb-2 [&>h3]:font-bold [&>h3]:mt-3 [&>ul]:list-disc [&>ul]:pl-5 [&_strong]:text-white">
-                    <ReactMarkdown>{aiSummary}</ReactMarkdown>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-
-            {insights.length > 0 ? (
-              <div className="space-y-3">
-                {insights.map(insight => (
-                  <div key={insight._id} className="flex gap-3 items-start p-3.5 rounded-[16px] bg-white/[0.02] border border-white/[0.03]">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-blue-500/10 border border-blue-500/20">
-                      <Lightbulb className="w-4 h-4 text-blue-400" />
-                    </div>
-                    <p className="text-[13px] font-medium leading-relaxed text-white/90">{insight.message}</p>
-                  </div>
-                ))}
-              </div>
-            ) : !aiSummaryLoading && !aiSummary ? (
-              <div className="flex flex-col items-center justify-center flex-1 py-8">
-                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3 border border-white/5">
-                  <Lightbulb className="w-5 h-5" style={{ color: '#94A3B8' }} />
-                </div>
-                <p className="text-[13px] font-medium text-center" style={{ color: '#94A3B8' }}>
-                  Not enough data for insights yet.<br />Keep tracking!
-                </p>
-              </div>
-            ) : null}
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-[16px] sm:text-[18px] font-bold text-white">Recent Expenses</h3>
+            <button onClick={() => navigate('/transactions')} className="flex items-center gap-1 text-[13px] font-bold transition-colors hover:text-white" style={{ color: 'var(--color-blue)' }}>
+              View All <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
+
+          {summary.recentExpenses?.length > 0 ? (
+            <div className="space-y-4">
+              {summary.recentExpenses.map((tx) => (
+                <div key={tx._id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
+                      style={{
+                        background: '#EF444412',
+                        borderColor: '#EF444425',
+                        color: '#EF4444',
+                      }}>
+                      <ArrowDownRight className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[14px] font-bold text-white truncate">{tx.description}</p>
+                      <p className="text-[12px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                        {formatDate(tx.date)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0 ml-2">
+                    <span className="text-[14px] font-bold" style={{ color: 'var(--color-danger)' }}>
+                      -{formatCurrency(tx.amount)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+             <div className="flex flex-col items-center justify-center flex-1 py-8">
+               <p className="text-[13px] text-center" style={{ color: '#94A3B8' }}>No recent expenses</p>
+             </div>
+          )}
         </motion.div>
       </div>
           );

@@ -63,6 +63,22 @@ const getDashboardSummary = async (userId, month, year) => {
     .sort({ date: -1, createdAt: -1 })
     .limit(5);
 
+  const recentIncome = await Transaction.find({
+    userId,
+    type: 'income',
+  })
+    .populate('categoryId', 'name icon color')
+    .sort({ date: -1, createdAt: -1 })
+    .limit(5);
+
+  const recentExpenses = await Transaction.find({
+    userId,
+    type: 'expense',
+  })
+    .populate('categoryId', 'name icon color')
+    .sort({ date: -1, createdAt: -1 })
+    .limit(5);
+
   // Category spending breakdown for current month
   const categorySpending = await Transaction.aggregate([
     {
@@ -164,6 +180,8 @@ const getDashboardSummary = async (userId, month, year) => {
     monthlySavings,
     currentMonth,
     recentTransactions,
+    recentIncome,
+    recentExpenses,
     categorySpending: categorySpendingData,
     incomeVsExpense,
     streak: user?.streak || { current: 0, longest: 0 },
