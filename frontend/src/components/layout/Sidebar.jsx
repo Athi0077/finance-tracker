@@ -101,7 +101,7 @@ const Sidebar = ({ isOpen, onClose, isExpanded, setIsExpanded }) => {
               style={{ background: 'transparent', border: 'none', padding: 0 }}
               title={!isExpanded ? "Expand Sidebar" : ""}
             >
-              <img src={logoImg} alt="FinanceFlow Logo" className="w-[22px] h-[22px] object-contain" />
+              <img src={logoImg} alt="FinanceFlow Logo" className="w-[28px] h-[28px] object-contain" />
             </button>
             
             <span 

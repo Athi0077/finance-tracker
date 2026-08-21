@@ -10,7 +10,7 @@ const ProtectedRoute = () => {
     return (
       <div className="flex items-center justify-center min-h-screen" style={{ background: 'var(--color-background)' }}>
         <div className="flex flex-col items-center gap-4">
-          <img src={logoImg} alt="FinanceFlow Logo" className="w-16 h-16 animate-pulse object-contain" />
+          <img src={logoImg} alt="FinanceFlow Logo" className="w-24 h-24 animate-pulse object-contain" />
           <Loader2 className="w-10 h-10 animate-spin" style={{ color: 'var(--color-primary)' }} />
           <p style={{ color: 'var(--color-text-secondary)' }}>Loading...</p>
         </div>

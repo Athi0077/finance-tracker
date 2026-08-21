@@ -52,7 +52,7 @@ const Header = ({ onMenuClick, title }) => {
         <img 
           src={logoImg} 
           alt="FinanceFlow Logo" 
-          className="lg:hidden w-6 h-6 object-contain" 
+          className="lg:hidden w-8 h-8 object-contain" 
         />
         
         <div className="flex flex-col justify-center ml-1 lg:ml-0">
