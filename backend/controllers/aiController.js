@@ -44,7 +44,7 @@ const chat = async (req, res, next) => {
         const context = await financeContextService.getFinancialContext(userId);
 
         // Call AI
-        const aiResponse = await aiService.chatWithFinancialAdvisor(context, message, history);
+        const aiResponse = await aiService.chatWithFinancialAdvisor(context, message, history, userId);
 
         // Save AI message
         const newAIMessage = await AIMessage.create({

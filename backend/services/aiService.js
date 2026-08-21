@@ -1,23 +1,29 @@
 const axios = require('axios');
+const Category = require('../models/Category');
 
 /**
  * Generate a response using OpenRouter
  * @param {Array} messages - The messages array for OpenAI chat completions format
- * @returns {string} - AI response
+ * @param {Array} tools - Optional array of tools for function calling
+ * @returns {Object} - AI message object
  */
-const generateResponse = async (messages) => {
+const generateResponse = async (messages, tools = null) => {
   try {
-    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+    const payload = {
       model: 'openai/gpt-4o',
       messages: messages,
       max_tokens: 1000
-    }, {
+    };
+    if (tools) {
+      payload.tools = tools;
+    }
+    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', payload, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`
       }
     });
-    return response.data.choices[0].message.content;
+    return response.data.choices[0].message;
   } catch (error) {
     console.error('Error generating AI response:', error.response?.data || error.message);
     throw new Error('Failed to generate AI response. Please try again later.');
@@ -27,7 +33,7 @@ const generateResponse = async (messages) => {
 /**
  * Specialized prompt for chat completions
  */
-const chatWithFinancialAdvisor = async (context, userMessage, conversationHistory = []) => {
+const chatWithFinancialAdvisor = async (context, userMessage, conversationHistory = [], userId = null) => {
     const systemInstruction = `
 You are the AI Financial Advisor for FinanceFlow.
 Your goal is to help the user understand their financial data, provide suggestions, and answer questions.
@@ -63,8 +69,74 @@ ${JSON.stringify(context, null, 2)}
         content: userMessage
     });
 
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "create_category",
+          description: "Create a new financial category for the user with an optional monthly budget. Call this when the user explicitly asks to create a category.",
+          parameters: {
+            type: "object",
+            properties: {
+              name: {
+                type: "string",
+                description: "The name of the category to create, e.g. Shopping, Groceries."
+              },
+              monthlyBudget: {
+                type: "number",
+                description: "The monthly budget limit for the category in the user's currency. Default is 0 if not specified."
+              }
+            },
+            required: ["name"]
+          }
+        }
+      }
+    ];
+
     try {
-        return await generateResponse(messages);
+        let responseMsg = await generateResponse(messages, tools);
+
+        // Check if the AI wants to call a tool
+        if (responseMsg.tool_calls && responseMsg.tool_calls.length > 0 && userId) {
+            messages.push(responseMsg); // Append assistant's tool call message
+
+            for (const toolCall of responseMsg.tool_calls) {
+                if (toolCall.function.name === 'create_category') {
+                    try {
+                        const args = JSON.parse(toolCall.function.arguments);
+                        
+                        // Check if category already exists
+                        let cat = await Category.findOne({ userId, name: { $regex: new RegExp(`^${args.name}$`, 'i') } });
+                        if (!cat) {
+                            cat = await Category.create({
+                                userId,
+                                name: args.name,
+                                monthlyBudget: args.monthlyBudget || 0,
+                                icon: 'circle', // Default icon
+                                color: '#6366f1' // Default color
+                            });
+                        }
+
+                        messages.push({
+                            role: "tool",
+                            tool_call_id: toolCall.id,
+                            content: JSON.stringify({ success: true, message: `Category '${args.name}' created successfully with budget ${args.monthlyBudget || 0}.` })
+                        });
+                    } catch (err) {
+                        messages.push({
+                            role: "tool",
+                            tool_call_id: toolCall.id,
+                            content: JSON.stringify({ success: false, message: `Failed to create category: ${err.message}` })
+                        });
+                    }
+                }
+            }
+
+            // Call AI again to get the final response based on tool execution
+            responseMsg = await generateResponse(messages, tools);
+        }
+
+        return responseMsg.content;
     } catch (error) {
         console.error('Error in chatWithFinancialAdvisor:', error);
         throw new Error('Failed to get response from AI Advisor.');
@@ -94,7 +166,8 @@ ${JSON.stringify(context, null, 2)}
         { role: 'user', content: prompt }
     ];
     
-    return await generateResponse(messages);
+    const responseMsg = await generateResponse(messages);
+    return responseMsg.content;
 };
 
 /**
@@ -125,7 +198,8 @@ If you cannot find a value, use null.
     ];
 
     try {
-        const responseStr = await generateResponse(messages);
+        const responseMsg = await generateResponse(messages);
+        const responseStr = responseMsg.content;
         // The AI might wrap it in ```json ... ```, so clean it
         const cleanStr = responseStr.replace(/```json/g, '').replace(/```/g, '').trim();
         return JSON.parse(cleanStr);
