@@ -97,11 +97,11 @@ const Sidebar = ({ isOpen, onClose, isExpanded, setIsExpanded }) => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => { if (window.innerWidth >= 1024 && !isExpanded) setIsExpanded(true); }}
-              className={`w-[36px] h-[36px] rounded-[12px] flex items-center justify-center shrink-0 transition-colors ${!isExpanded ? (isLight ? 'hover:bg-slate-100 cursor-pointer' : 'hover:bg-white/10 cursor-pointer') : 'cursor-default'}`}
+              className={`w-[40px] h-[40px] rounded-[12px] flex items-center justify-center shrink-0 transition-colors ${!isExpanded ? (isLight ? 'hover:bg-slate-100 cursor-pointer' : 'hover:bg-white/10 cursor-pointer') : 'cursor-default'}`}
               style={{ background: 'transparent', border: 'none', padding: 0 }}
               title={!isExpanded ? "Expand Sidebar" : ""}
             >
-              <img src={logoImg} alt="FinanceFlow Logo" className="w-[28px] h-[28px] object-contain" />
+              <img src={logoImg} alt="FinanceFlow Logo" className="w-[36px] h-[36px] object-contain" />
             </button>
             
             <span 
