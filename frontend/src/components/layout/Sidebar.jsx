@@ -16,6 +16,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import logoImg from '../../assets/logo1.png';
 
 const NAV_GROUPS = [
   {
@@ -100,7 +101,7 @@ const Sidebar = ({ isOpen, onClose, isExpanded, setIsExpanded }) => {
               style={{ background: 'transparent', border: 'none', padding: 0 }}
               title={!isExpanded ? "Expand Sidebar" : ""}
             >
-              <TrendingUp className="w-[20px] h-[20px] text-[#F97316]" />
+              <img src={logoImg} alt="FinanceFlow Logo" className="w-[22px] h-[22px] object-contain" />
             </button>
             
             <span 
